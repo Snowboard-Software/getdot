@@ -8,8 +8,7 @@
  */
 
 import { execFileSync, spawn } from 'child_process';
-import { createServer } from 'http';
-import http from 'http';
+import http, { createServer } from 'http';
 import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync, statSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';

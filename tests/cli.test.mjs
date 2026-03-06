@@ -6,7 +6,7 @@
  * config management, login/logout, and output formatting.
  */
 
-import { execFileSync, execFile } from 'child_process';
+import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';

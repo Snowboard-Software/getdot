@@ -26,17 +26,26 @@ function request(url, options, body) {
 }
 
 /**
- * Download a file from a URL to a local path.
+ * Download a file from a URL to a local path. Follows up to 5 redirects.
  */
-async function downloadFile(url, destPath, token) {
+async function downloadFile(url, destPath, token, maxRedirects = 5) {
   const headers = {};
   if (token) headers['X-API-KEY'] = token;
 
-  const res = await request(url, { method: 'GET', headers });
-  if (res.status >= 400) {
-    throw new Error(`Download failed (${res.status}): ${url}`);
+  let currentUrl = url;
+  for (let i = 0; i <= maxRedirects; i++) {
+    const res = await request(currentUrl, { method: 'GET', headers });
+    if (res.status >= 300 && res.status < 400 && res.headers.location) {
+      currentUrl = res.headers.location;
+      continue;
+    }
+    if (res.status >= 400) {
+      throw new Error(`Download failed (${res.status}): ${currentUrl}`);
+    }
+    writeFileSync(destPath, res.buffer);
+    return;
   }
-  writeFileSync(destPath, res.buffer);
+  throw new Error(`Too many redirects: ${url}`);
 }
 
 /**
@@ -92,10 +101,21 @@ export async function ask(question, chatId) {
     process.exit(1);
   }
 
-  const result = JSON.parse(res.buffer.toString());
+  let result;
+  try {
+    result = JSON.parse(res.buffer.toString());
+  } catch {
+    console.error('Error: unexpected response format from server.');
+    process.exit(1);
+  }
+
+  if (!Array.isArray(result)) {
+    console.error('Error: unexpected response format from server.');
+    process.exit(1);
+  }
 
   // Find last assistant message
-  const lastAssistant = [...result].reverse().find(m => m.role === 'assistant');
+  const lastAssistant = result.findLast(m => m.role === 'assistant');
   if (!lastAssistant) {
     console.error('No response from Dot.');
     process.exit(1);
@@ -128,14 +148,17 @@ export async function ask(question, chatId) {
         downloadedFiles[key] = filePath;
       }
       if (key.startsWith('file_') && asset.download_url) {
-        const fileName = asset.path || key.replace('file_', '');
-        const filePath = join(tempDir, fileName.split('/').pop());
-        await downloadFile(asset.download_url, filePath, token);
-        downloadedFiles[key] = filePath;
+        const rawName = asset.path || key.replace('file_', '');
+        const baseName = rawName.split('/').pop().replace(/^\.+/g, '');
+        if (baseName) {
+          const filePath = join(tempDir, baseName);
+          await downloadFile(asset.download_url, filePath, token);
+          downloadedFiles[key] = filePath;
+        }
       }
     } catch (e) {
       // Non-fatal: continue even if a file download fails
-      process.stderr.write(`Warning: failed to download ${key}: ${e.message}\n`);
+      console.error(`Warning: failed to download ${key}: ${e.message}`);
     }
   }
 

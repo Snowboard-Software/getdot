@@ -13,7 +13,8 @@ async function openBrowser(url) {
   if (os === 'darwin') {
     execFile('open', [url]);
   } else if (os === 'win32') {
-    execFile('cmd', ['/c', 'start', '', url]);
+    // Use PowerShell Start-Process to avoid cmd shell metacharacter injection
+    execFile('powershell', ['-NoProfile', '-Command', `Start-Process "${url}"`]);
   } else {
     execFile('xdg-open', [url]);
   }

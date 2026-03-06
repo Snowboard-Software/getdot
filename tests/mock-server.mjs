@@ -31,7 +31,14 @@ const server = createServer((req, res) => {
     let body = '';
     req.on('data', c => { body += c; });
     req.on('end', () => {
-      const parsed = JSON.parse(body);
+      let parsed;
+      try {
+        parsed = JSON.parse(body);
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ detail: 'Invalid JSON body' }));
+        return;
+      }
       const chatId = parsed.chat_id || 'test-chat-123';
       const port = server.address().port;
       res.writeHead(200, { 'Content-Type': 'application/json' });

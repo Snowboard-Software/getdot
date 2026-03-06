@@ -13,12 +13,19 @@
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "test": "node --test tests/cli.test.mjs tests/e2e.test.mjs",
+    "test:unit": "node --test tests/cli.test.mjs",
+    "test:e2e": "node --test tests/e2e.test.mjs",
+    "test:integration": "node --test tests/integration.test.mjs"
+  },
   "keywords": ["dot", "ai", "data", "sql", "analytics", "cli"],
   "author": "Dot (getdot.ai)",
   "license": "MIT",
+  "homepage": "https://getdot.ai",
   "repository": {
     "type": "git",
-    "url": "https://github.com/getdot-ai/getdot"
+    "url": "https://github.com/Snowboard-Software/getdot"
   },
   "engines": {
     "node": ">=18"

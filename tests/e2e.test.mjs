@@ -91,8 +91,8 @@ describe('getdot E2E', () => {
     mockChild = child;
     mockPort = port;
 
-    // Login to mock server
-    run(['login', '--token', FAKE_TOKEN, '--server', `http://localhost:${mockPort}`]);
+    // Login to mock server (use 127.0.0.1 to avoid IPv6 resolution issues on Node 18)
+    run(['login', '--token', FAKE_TOKEN, '--server', `http://127.0.0.1:${mockPort}`]);
   });
 
   after(() => {
@@ -176,7 +176,7 @@ describe('getdot E2E', () => {
 
   test('invalid token returns auth error', () => {
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify({
-      token: 'invalid', server: `http://localhost:${mockPort}`,
+      token: 'invalid', server: `http://127.0.0.1:${mockPort}`,
     }) + '\n', { mode: 0o600 });
 
     const err = runExpectFail(['"Should fail"']);
@@ -184,7 +184,7 @@ describe('getdot E2E', () => {
 
     // Restore
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify({
-      token: FAKE_TOKEN, server: `http://localhost:${mockPort}`,
+      token: FAKE_TOKEN, server: `http://127.0.0.1:${mockPort}`,
     }) + '\n', { mode: 0o600 });
   });
 
@@ -206,7 +206,7 @@ describe('getdot E2E', () => {
       });
       srv.listen(0, '127.0.0.1', () => {
         const port = srv.address().port;
-        http.get(`http://localhost:${port}/callback?token=${encodeURIComponent(token)}&state=${state}`, { agent: false }, r => r.resume());
+        http.get(`http://127.0.0.1:${port}/callback?token=${encodeURIComponent(token)}&state=${state}`, { agent: false }, r => r.resume());
       });
       timer = setTimeout(() => { srv.close(); reject(new Error('timeout')); }, 3000);
     });
@@ -230,7 +230,7 @@ describe('getdot E2E', () => {
       });
       srv.listen(0, '127.0.0.1', () => {
         const cliPort = srv.address().port;
-        http.get(`http://localhost:${mockPort}/cli-auth?port=${cliPort}&state=${state}`, { agent: false }, (redir) => {
+        http.get(`http://127.0.0.1:${mockPort}/cli-auth?port=${cliPort}&state=${state}`, { agent: false }, (redir) => {
           redir.resume();
           if (redir.statusCode === 302 && redir.headers.location) {
             http.get(redir.headers.location, { agent: false }, r => r.resume()).on('error', () => {});
@@ -259,7 +259,7 @@ describe('getdot E2E', () => {
       });
       srv.listen(0, '127.0.0.1', () => {
         const port = srv.address().port;
-        http.get(`http://localhost:${port}/callback?token=t&state=wrong`, { agent: false }, (res) => {
+        http.get(`http://127.0.0.1:${port}/callback?token=t&state=wrong`, { agent: false }, (res) => {
           let body = '';
           res.on('data', c => { body += c; });
           res.on('end', () => { clearTimeout(timer); srv.close(); resolve({ status: res.statusCode, body }); });
@@ -274,7 +274,7 @@ describe('getdot E2E', () => {
 
   test('connection refused handled gracefully', () => {
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify({
-      token: 'dot-test', server: 'http://localhost:19999',
+      token: 'dot-test', server: 'http://127.0.0.1:19999',
     }) + '\n', { mode: 0o600 });
 
     try {
@@ -286,7 +286,7 @@ describe('getdot E2E', () => {
 
     // Restore
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify({
-      token: FAKE_TOKEN, server: `http://localhost:${mockPort}`,
+      token: FAKE_TOKEN, server: `http://127.0.0.1:${mockPort}`,
     }) + '\n', { mode: 0o600 });
   });
 
@@ -308,6 +308,6 @@ describe('getdot E2E', () => {
     run(['logout']);
     assert.ok(!readConfig().token);
     // Re-login for any subsequent tests
-    run(['login', '--token', FAKE_TOKEN, '--server', `http://localhost:${mockPort}`]);
+    run(['login', '--token', FAKE_TOKEN, '--server', `http://127.0.0.1:${mockPort}`]);
   });
 });

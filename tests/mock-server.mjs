@@ -59,11 +59,11 @@ const server = createServer((req, res) => {
                 text_summary: 'total — mean: 41,675, min: 38,120, max: 45,231 | region — 2 unique',
                 shape: [2, 3],
                 sql_query: "SELECT date, total, region FROM revenue WHERE date >= '2026-02-01'",
-                csv_download_url: `http://localhost:${port}/api/download_csv?chat_id=${chatId}&df_key=df_revenue`,
+                csv_download_url: `http://127.0.0.1:${port}/api/download_csv?chat_id=${chatId}&df_key=df_revenue`,
               },
               viz_monthly_sales: {
                 interpretation: 'This chart shows monthly revenue trending upward.',
-                chart_download_url: `http://localhost:${port}/api/asset/test-token.png`,
+                chart_download_url: `http://127.0.0.1:${port}/api/asset/test-token.png`,
               },
             },
             dot_url: `https://app.getdot.ai/?c=${chatId}`,
@@ -94,7 +94,7 @@ const server = createServer((req, res) => {
   if (url.pathname === '/cli-auth') {
     const cbPort = url.searchParams.get('port');
     const state = url.searchParams.get('state');
-    res.writeHead(302, { Location: `http://localhost:${cbPort}/callback?token=${encodeURIComponent(FAKE_TOKEN)}&state=${state}` });
+    res.writeHead(302, { Location: `http://127.0.0.1:${cbPort}/callback?token=${encodeURIComponent(FAKE_TOKEN)}&state=${state}` });
     res.end();
     return;
   }

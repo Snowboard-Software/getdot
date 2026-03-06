@@ -11,13 +11,15 @@
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
 const TOKEN = process.env.GETDOT_TEST_TOKEN;
 const SERVER = process.env.GETDOT_TEST_SERVER || 'https://app.getdot.ai';
-const GETDOT = join(import.meta.dirname, '..', 'bin', 'getdot.mjs');
+const GETDOT = join(__dirname, '..', 'bin', 'getdot.mjs');
 const TEST_HOME = join(tmpdir(), `getdot-integ-${process.pid}`);
 
 function run(args) {

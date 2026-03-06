@@ -9,11 +9,13 @@
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 
-const GETDOT = join(import.meta.dirname, '..', 'bin', 'getdot.mjs');
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
+const GETDOT = join(__dirname, '..', 'bin', 'getdot.mjs');
 
 // Use an isolated HOME so we don't touch real config
 const TEST_HOME = join(tmpdir(), `getdot-test-${process.pid}`);

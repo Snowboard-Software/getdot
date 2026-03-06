@@ -11,12 +11,14 @@ import { execFileSync, spawn } from 'child_process';
 import http, { createServer } from 'http';
 import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync, statSync } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 
-const GETDOT = join(import.meta.dirname, '..', 'bin', 'getdot.mjs');
-const MOCK_SERVER = join(import.meta.dirname, 'mock-server.mjs');
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
+const GETDOT = join(__dirname, '..', 'bin', 'getdot.mjs');
+const MOCK_SERVER = join(__dirname, 'mock-server.mjs');
 const TEST_HOME = join(tmpdir(), `getdot-e2e-${process.pid}`);
 const TEST_CONFIG_DIR = join(TEST_HOME, '.config', 'getdot');
 const TEST_CONFIG_PATH = join(TEST_CONFIG_DIR, 'config.json');

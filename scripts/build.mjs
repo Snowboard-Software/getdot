@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+/**
+ * Build standalone getdot binaries using Bun compile.
+ * Usage: bun scripts/build.mjs [--target <platform>]
+ *
+ * Targets: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64
+ * Default: all targets
+ */
+
+import { execFileSync } from 'child_process';
+import { mkdirSync, readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, '..');
+const DIST = join(ROOT, 'dist');
+const ENTRY = join(ROOT, 'bin', 'getdot.mjs');
+const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
+
+const TARGETS = {
+  'darwin-arm64':  { bun: 'bun-darwin-arm64',  out: `getdot-${version}-darwin-arm64` },
+  'darwin-x64':    { bun: 'bun-darwin-x64',    out: `getdot-${version}-darwin-x64` },
+  'linux-x64':     { bun: 'bun-linux-x64',     out: `getdot-${version}-linux-x64` },
+  'linux-arm64':   { bun: 'bun-linux-arm64',   out: `getdot-${version}-linux-arm64` },
+  'windows-x64':   { bun: 'bun-windows-x64',   out: `getdot-${version}-windows-x64.exe` },
+};
+
+const requestedTarget = process.argv.includes('--target')
+  ? process.argv[process.argv.indexOf('--target') + 1]
+  : null;
+
+const targets = requestedTarget
+  ? { [requestedTarget]: TARGETS[requestedTarget] }
+  : TARGETS;
+
+if (requestedTarget && !TARGETS[requestedTarget]) {
+  console.error(`Unknown target: ${requestedTarget}`);
+  console.error(`Available: ${Object.keys(TARGETS).join(', ')}`);
+  process.exit(1);
+}
+
+mkdirSync(DIST, { recursive: true });
+
+for (const [name, { bun, out }] of Object.entries(targets)) {
+  const outPath = join(DIST, out);
+  console.log(`Building ${name} -> ${out}`);
+  try {
+    execFileSync('bun', ['build', '--compile', '--target', bun, ENTRY, '--outfile', outPath], {
+      stdio: 'inherit',
+      cwd: ROOT,
+    });
+    console.log(`  Done: ${outPath}`);
+  } catch (e) {
+    console.error(`  Failed to build ${name}: ${e.message}`);
+    process.exit(1);
+  }
+}
+
+console.log(`\nAll builds complete in dist/`);

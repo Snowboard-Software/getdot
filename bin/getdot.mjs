@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { ask } from '../src/ask.mjs';
+import { catalog } from '../src/catalog.mjs';
 import { loginBrowser, loginToken, showStatus, logout } from '../src/login.mjs';
 
 const args = process.argv.slice(2);
@@ -58,6 +59,10 @@ switch (command) {
     showStatus();
     break;
 
+  case 'catalog':
+    await catalog();
+    break;
+
   default: {
     // Treat everything as a question
     const question = positional.join(' ');
@@ -75,6 +80,7 @@ Usage:
   getdot login                        # Browser-based login
   getdot login --token <TOKEN>        # Manual token login
   getdot login --server <URL>         # Custom server
+  getdot catalog                      # Show available data overview
   getdot status                       # Show login status
   getdot logout                       # Clear credentials
 

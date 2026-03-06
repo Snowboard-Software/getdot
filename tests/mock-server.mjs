@@ -83,6 +83,36 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Catalog endpoint
+  if (url.pathname === '/api/cli/catalog' && req.method === 'GET') {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey || apiKey === 'invalid') {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ detail: 'Invalid API key' }));
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      org_id: 'e2e.org',
+      capabilities: ['SQL queries', 'Visualizations', 'Scheduled reports'],
+      custom_skills: [{ name: 'forecast_revenue', description: 'Revenue forecasting' }],
+      connections: [
+        { id: 'test-snowflake', type: 'snowflake', table_count: 3 },
+        { id: 'test-dbt', type: 'dbt', table_count: 2 },
+      ],
+      tables: [
+        { id: 'public.orders', name: 'public.orders', description: 'Order transactions', column_count: 42, num_rows: 1200000, connection_id: 'test-snowflake' },
+        { id: 'public.customers', name: 'public.customers', description: 'Customer master data', column_count: 28, num_rows: 50000, connection_id: 'test-snowflake' },
+        { id: 'public.products', name: 'public.products', description: 'Product catalog', column_count: 15, num_rows: 2300, connection_id: 'test-snowflake' },
+        { id: 'analytics.revenue', name: 'analytics.revenue', description: 'Monthly revenue model', column_count: 8, num_rows: 360, connection_id: 'test-dbt' },
+        { id: 'analytics.users', name: 'analytics.users', description: 'Active users model', column_count: 12, num_rows: 45000, connection_id: 'test-dbt' },
+      ],
+      external_assets: { 'Looker Dashboard': 5, 'Looker Look': 3 },
+      total_tables: 5,
+    }));
+    return;
+  }
+
   // CSV
   if (url.pathname === '/api/download_csv') {
     res.writeHead(200, { 'Content-Type': 'text/csv' });

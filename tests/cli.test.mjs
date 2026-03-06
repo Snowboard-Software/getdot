@@ -139,6 +139,13 @@ describe('getdot CLI', () => {
     assert.match(out, /Not logged in/);
   });
 
+  // ── Catalog (unauthenticated) ──
+
+  test('catalog without login shows auth error', () => {
+    const err = runExpectFail(['catalog']);
+    assert.match(err, /Not authenticated/);
+  });
+
   // ── Ask (unauthenticated) ──
 
   test('ask without login shows auth error', () => {

@@ -188,6 +188,55 @@ describe('getdot E2E', () => {
     }) + '\n', { mode: 0o600 });
   });
 
+  // ── Catalog ──
+
+  test('catalog returns org overview', () => {
+    const out = run(['catalog']);
+    assert.match(out, /Dot Data Catalog/);
+    assert.match(out, /e2e\.org/);
+  });
+
+  test('catalog shows capabilities', () => {
+    const out = run(['catalog']);
+    assert.match(out, /SQL queries/);
+    assert.match(out, /Visualizations/);
+    assert.match(out, /Scheduled reports/);
+  });
+
+  test('catalog shows custom skills', () => {
+    const out = run(['catalog']);
+    assert.match(out, /Custom Skills:/);
+    assert.match(out, /forecast_revenue/);
+  });
+
+  test('catalog shows connections with table counts', () => {
+    const out = run(['catalog']);
+    assert.match(out, /Data Sources \(2 connections\)/);
+    assert.match(out, /test-snowflake \(snowflake\)/);
+    assert.match(out, /3 tables/);
+    assert.match(out, /test-dbt \(dbt\)/);
+  });
+
+  test('catalog shows tables with metadata', () => {
+    const out = run(['catalog']);
+    assert.match(out, /Tables \(5 active\)/);
+    assert.match(out, /public\.orders/);
+    assert.match(out, /Order transactions/);
+    assert.match(out, /42 cols/);
+    assert.match(out, /1\.2M rows/);
+  });
+
+  test('catalog shows external assets', () => {
+    const out = run(['catalog']);
+    assert.match(out, /External Assets:/);
+    assert.match(out, /Looker Dashboard/);
+  });
+
+  test('catalog shows tip', () => {
+    const out = run(['catalog']);
+    assert.match(out, /Tip: getdot/);
+  });
+
   // ── Browser Login Callback ──
 
   test('callback server receives token from redirect', async () => {

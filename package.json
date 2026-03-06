@@ -1,0 +1,26 @@
+{
+  "name": "getdot",
+  "version": "0.1.0",
+  "description": "Query your company data from the terminal using Dot, your AI data analyst",
+  "type": "module",
+  "bin": {
+    "getdot": "./bin/getdot.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "SKILL.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": ["dot", "ai", "data", "sql", "analytics", "cli"],
+  "author": "Dot (getdot.ai)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getdot-ai/getdot"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

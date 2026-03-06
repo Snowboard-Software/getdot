@@ -1,0 +1,97 @@
+name: E2E Live Server
+
+# Full end-to-end tests against a real Dot backend.
+# Requires GETDOT_TEST_TOKEN and GETDOT_TEST_SERVER secrets.
+# Runs on push to main and weekly to catch regressions.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1' # Weekly Monday 8am UTC
+  workflow_dispatch:
+    inputs:
+      server:
+        description: 'Dot server URL to test against'
+        required: false
+        default: ''
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-live:
+    name: Live E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 1. Run unit tests first (fast gate)
+      - name: Unit tests
+        run: node --test tests/cli.test.mjs
+
+      # 2. Run E2E tests with mock server
+      - name: E2E tests (mock server)
+        run: node --test tests/e2e.test.mjs
+
+      # 3. Run live integration tests
+      - name: Integration tests (live server)
+        run: node --test tests/integration.test.mjs
+        env:
+          GETDOT_TEST_TOKEN: ${{ secrets.GETDOT_TEST_TOKEN }}
+          GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
+        timeout-minutes: 10
+
+      # 4. Verify npm package builds correctly
+      - name: Verify npm pack
+        run: |
+          npm pack --dry-run 2>&1 | tee /tmp/pack-output.txt
+          # Verify essential files are included
+          grep -q "bin/getdot.mjs" /tmp/pack-output.txt
+          grep -q "src/ask.mjs" /tmp/pack-output.txt
+          grep -q "src/login.mjs" /tmp/pack-output.txt
+          grep -q "src/config.mjs" /tmp/pack-output.txt
+          grep -q "SKILL.md" /tmp/pack-output.txt
+          echo "Package contents verified"
+
+      # 5. Verify getdot --help works after npm link
+      - name: Verify global install
+        run: |
+          npm link
+          getdot --help | grep -q "Usage:"
+          getdot status | grep -q "Not logged in"
+          echo "Global install verified"
+
+      # 6. Test login + status with real token
+      - name: Verify login flow
+        if: env.GETDOT_TEST_TOKEN != ''
+        env:
+          GETDOT_TEST_TOKEN: ${{ secrets.GETDOT_TEST_TOKEN }}
+          GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
+        run: |
+          getdot login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
+          getdot status | grep -q "Logged in as:"
+          echo "Login flow verified"
+
+      # 7. Test a real question
+      - name: Verify data query
+        if: env.GETDOT_TEST_TOKEN != ''
+        env:
+          GETDOT_TEST_TOKEN: ${{ secrets.GETDOT_TEST_TOKEN }}
+          GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
+        run: |
+          getdot login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
+          OUTPUT=$(getdot "What data sources do you have?")
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -q "Open in Dot:"
+          echo "$OUTPUT" | grep -q "Use --chat"
+          echo "Data query verified"
+        timeout-minutes: 5

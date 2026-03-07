@@ -62,11 +62,14 @@ fi
 
 chmod +x "$TMP/getdot"
 
-# Install
-if [ -w "$INSTALL_DIR" ]; then
-  mv "$TMP/getdot" "$INSTALL_DIR/getdot"
-else
+# Install — create dir if needed, use sudo only when necessary
+install_binary() {
+  mkdir -p "$INSTALL_DIR" 2>/dev/null && mv "$TMP/getdot" "$INSTALL_DIR/getdot" 2>/dev/null
+}
+
+if ! install_binary; then
   echo "Installing to $INSTALL_DIR (requires sudo)..."
+  sudo mkdir -p "$INSTALL_DIR"
   sudo mv "$TMP/getdot" "$INSTALL_DIR/getdot"
 fi
 

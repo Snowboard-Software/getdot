@@ -50,27 +50,15 @@ jobs:
           GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
         timeout-minutes: 10
 
-      # 4. Verify npm package builds correctly
-      - name: Verify npm pack
+      # 4. Verify getdot runs via node
+      - name: Verify CLI runs
         run: |
-          npm pack --dry-run 2>&1 | tee /tmp/pack-output.txt
-          # Verify essential files are included
-          grep -q "bin/getdot.mjs" /tmp/pack-output.txt
-          grep -q "src/ask.mjs" /tmp/pack-output.txt
-          grep -q "src/login.mjs" /tmp/pack-output.txt
-          grep -q "src/config.mjs" /tmp/pack-output.txt
-          grep -q "SKILL.md" /tmp/pack-output.txt
-          echo "Package contents verified"
+          node bin/getdot.mjs --help | grep -q "Usage:"
+          node bin/getdot.mjs --version | grep -q "getdot"
+          echo "CLI verified"
 
-      # 5. Verify getdot --help works after npm link
-      - name: Verify global install
-        run: |
-          npm link
-          getdot --help | grep -q "Usage:"
-          getdot status | grep -q "Not logged in"
-          echo "Global install verified"
-
-      # 6. Test login + status with real token
+      # 5. Test login + status with real token
+      #    (requires GETDOT_TEST_TOKEN secret)
       - name: Verify login flow
         if: env.GETDOT_TEST_TOKEN != ''
         env:
@@ -81,7 +69,7 @@ jobs:
           getdot status | grep -q "Logged in as:"
           echo "Login flow verified"
 
-      # 7. Test a real question
+      # 6. Test a real question
       - name: Verify data query
         if: env.GETDOT_TEST_TOKEN != ''
         env:

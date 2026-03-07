@@ -14,10 +14,13 @@ jobs:
       matrix:
         include:
           - os: macos-latest
+            label: darwin
             targets: darwin-arm64 darwin-x64
           - os: ubuntu-latest
+            label: linux
             targets: linux-x64 linux-arm64
           - os: ubuntu-latest
+            label: windows
             targets: windows-x64
     runs-on: ${{ matrix.os }}
     steps:
@@ -35,7 +38,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: binaries-${{ matrix.os }}
+          name: binaries-${{ matrix.label }}
           path: dist/
 
   release:

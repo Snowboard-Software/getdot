@@ -1,6 +1,7 @@
 import { mkdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { createHash } from 'crypto';
 import { getToken, getServer } from './config.mjs';
 import { request, downloadFile } from './http.mjs';
 import { getCache, setCache } from './cache.mjs';
@@ -20,7 +21,8 @@ export async function ask(question, chatId, { noCache = false } = {}) {
 
   // Check cache (only for new conversations — follow-ups with --chat always go to server)
   if (!noCache && !chatId) {
-    const cached = getCache({ server, question });
+    const userHash = createHash('sha256').update(token).digest('hex').slice(0, 8);
+    const cached = getCache({ server, question, user: userHash });
     if (cached) {
       formatOutput(cached.message, cached.downloadedFiles, cached.chatId, cached.additionalData);
       return;
@@ -129,7 +131,8 @@ export async function ask(question, chatId, { noCache = false } = {}) {
 
   // Cache the response (only for new conversations)
   if (!chatId) {
-    setCache({ server, question }, {
+    const userHash = createHash('sha256').update(token).digest('hex').slice(0, 8);
+    setCache({ server, question, user: userHash }, {
       message: lastAssistant,
       downloadedFiles,
       chatId: actualChatId,

@@ -13,6 +13,7 @@ export function request(url, options, body) {
       const req = http.request(url, options, (res) => {
         const chunks = [];
         res.on('data', (chunk) => chunks.push(chunk));
+        res.on('error', reject);
         res.on('end', () => {
           resolve({ status: res.statusCode, headers: res.headers, buffer: Buffer.concat(chunks) });
         });
@@ -20,23 +21,30 @@ export function request(url, options, body) {
       req.on('error', reject);
       if (body) req.write(body);
       req.end();
-    });
+    }).catch(reject);
   });
 }
 
 /**
  * Download a file from a URL to a local path. Follows up to 5 redirects.
+ * Auth headers are only sent to the original host, not to redirect targets.
  */
 export async function downloadFile(url, destPath, token, maxRedirects = 5) {
   const { writeFileSync } = await import('fs');
-  const headers = {};
-  if (token) headers['X-API-KEY'] = token;
+  const originalHost = new URL(url).host;
 
   let currentUrl = url;
   for (let i = 0; i <= maxRedirects; i++) {
+    const headers = {};
+    // Only send auth token to the original host, not external redirects
+    if (token && new URL(currentUrl).host === originalHost) {
+      headers['X-API-KEY'] = token;
+    }
     const res = await request(currentUrl, { method: 'GET', headers });
     if (res.status >= 300 && res.status < 400 && res.headers.location) {
-      currentUrl = res.headers.location;
+      const location = res.headers.location;
+      // Handle relative redirects
+      currentUrl = location.startsWith('http') ? location : new URL(location, currentUrl).href;
       continue;
     }
     if (res.status >= 400) {

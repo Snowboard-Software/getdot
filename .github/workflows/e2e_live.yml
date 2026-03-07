@@ -65,8 +65,8 @@ jobs:
           GETDOT_TEST_TOKEN: ${{ secrets.GETDOT_TEST_TOKEN }}
           GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
         run: |
-          getdot login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
-          getdot status | grep -q "Logged in as:"
+          node bin/getdot.mjs login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
+          node bin/getdot.mjs status | grep -q "Logged in as:"
           echo "Login flow verified"
 
       # 6. Test a real question
@@ -76,8 +76,8 @@ jobs:
           GETDOT_TEST_TOKEN: ${{ secrets.GETDOT_TEST_TOKEN }}
           GETDOT_TEST_SERVER: ${{ inputs.server || secrets.GETDOT_TEST_SERVER || 'https://app.getdot.ai' }}
         run: |
-          getdot login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
-          OUTPUT=$(getdot "What data sources do you have?")
+          node bin/getdot.mjs login --token "$GETDOT_TEST_TOKEN" --server "$GETDOT_TEST_SERVER"
+          OUTPUT=$(node bin/getdot.mjs "What data sources do you have?")
           echo "$OUTPUT"
           echo "$OUTPUT" | grep -q "Open in Dot:"
           echo "$OUTPUT" | grep -q "Use --chat"

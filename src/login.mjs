@@ -1,20 +1,19 @@
 import { createServer } from 'http';
+import { execFile } from 'child_process';
+import { platform } from 'os';
 import { randomBytes } from 'crypto';
-import { loadConfig, saveConfig, clearConfig, getServer } from './config.mjs';
+import { loadConfig, saveConfig, clearConfig, getServer, DEFAULT_SERVER } from './config.mjs';
 
 /**
  * Open a URL in the default browser (cross-platform, no dependencies).
  */
-async function openBrowser(url) {
-  const { execFile } = await import('child_process');
-  const { platform } = await import('os');
+function openBrowser(url) {
   const os = platform();
 
   if (os === 'darwin') {
     execFile('open', [url]);
   } else if (os === 'win32') {
-    // Use PowerShell Start-Process to avoid cmd shell metacharacter injection
-    execFile('powershell', ['-NoProfile', '-Command', `Start-Process "${url}"`]);
+    execFile('cmd', ['/c', 'start', '', url]);
   } else {
     execFile('xdg-open', [url]);
   }
@@ -80,7 +79,6 @@ export async function loginBrowser(serverUrl) {
       finish(null, token);
     });
 
-    // Bind to localhost only for security
     httpServer.listen(0, '127.0.0.1', () => {
       const port = httpServer.address().port;
       const authUrl = `${server}/cli-auth?port=${port}&state=${state}`;
@@ -131,7 +129,7 @@ export function showStatus() {
     console.log('Logged in (token present)');
   }
 
-  console.log(`Server: ${config.server || 'https://app.getdot.ai'}`);
+  console.log(`Server: ${config.server || DEFAULT_SERVER}`);
 }
 
 /**

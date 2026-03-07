@@ -5,6 +5,8 @@ import { homedir } from 'os';
 const CONFIG_DIR = join(homedir(), '.config', 'getdot');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
+export const DEFAULT_SERVER = 'https://app.getdot.ai';
+
 export function loadConfig() {
   try {
     return JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
@@ -31,5 +33,18 @@ export function getToken() {
 }
 
 export function getServer() {
-  return loadConfig().server || 'https://app.getdot.ai';
+  return loadConfig().server || DEFAULT_SERVER;
+}
+
+/**
+ * Load token and server in a single config read.
+ * Exits with an auth error if no token is found.
+ */
+export function requireAuth() {
+  const config = loadConfig();
+  if (!config.token) {
+    console.error('Not authenticated. Run: getdot login');
+    process.exit(1);
+  }
+  return { token: config.token, server: config.server || DEFAULT_SERVER };
 }

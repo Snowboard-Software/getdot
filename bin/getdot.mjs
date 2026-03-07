@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { ask } from '../src/ask.mjs';
 import { catalog } from '../src/catalog.mjs';
 import { loginBrowser, loginToken, showStatus, logout } from '../src/login.mjs';
 import { clearCache } from '../src/cache.mjs';
+
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
+const { version } = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
 
 const args = process.argv.slice(2);
 
@@ -28,7 +34,7 @@ for (let i = 0; i < args.length; i++) {
     console.log('Cache cleared.');
     process.exit(0);
   } else if (args[i] === '--version' || args[i] === '-v') {
-    console.log('getdot 0.1.0');
+    console.log(`getdot ${version}`);
     process.exit(0);
   } else if (args[i] === '--help' || args[i] === '-h') {
     printHelp();

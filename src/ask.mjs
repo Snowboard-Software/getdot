@@ -2,26 +2,20 @@ import { mkdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { createHash } from 'crypto';
-import { getToken, getServer } from './config.mjs';
-import { request, downloadFile } from './http.mjs';
+import { requireAuth } from './config.mjs';
+import { apiRequest, downloadFile } from './http.mjs';
 import { getCache, setCache } from './cache.mjs';
 
 /**
  * Ask Dot a question via the agentic endpoint.
  */
 export async function ask(question, chatId, { noCache = false } = {}) {
-  const token = getToken();
-  if (!token) {
-    console.error('Not authenticated. Run: getdot login');
-    process.exit(1);
-  }
-
-  const server = getServer();
+  const { token, server } = requireAuth();
   const id = chatId || `cli-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const userHash = createHash('sha256').update(token).digest('hex').slice(0, 8);
 
-  // Check cache (only for new conversations — follow-ups with --chat always go to server)
+  // Check cache (only for new conversations -- follow-ups with --chat always go to server)
   if (!noCache && !chatId) {
-    const userHash = createHash('sha256').update(token).digest('hex').slice(0, 8);
     const cached = getCache({ server, question, user: userHash });
     if (cached) {
       formatOutput(cached.message, cached.downloadedFiles, cached.chatId, cached.additionalData);
@@ -29,16 +23,9 @@ export async function ask(question, chatId, { noCache = false } = {}) {
     }
   }
 
-  const payload = JSON.stringify({
-    messages: [{ role: 'user', content: question }],
-    chat_id: id,
-    skip_check: !!chatId,
-  });
-
-  const url = `${server}/api/agentic`;
-  let res;
-  try {
-    res = await request(url, {
+  const result = await apiRequest(
+    `${server}/api/agentic`,
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,43 +33,19 @@ export async function ask(question, chatId, { noCache = false } = {}) {
         'X-Response-Format': 'cli',
         'X-Requested-With': 'XMLHttpRequest',
       },
-    }, payload);
-  } catch (err) {
-    console.error(`Connection failed: ${err.message}`);
-    console.error(`Server: ${server}`);
-    process.exit(1);
-  }
-
-  if (res.status === 401) {
-    console.error('Authentication failed. Run: getdot login');
-    process.exit(1);
-  }
-
-  if (res.status >= 400) {
-    const text = res.buffer.toString();
-    try {
-      const err = JSON.parse(text);
-      console.error(`Error: ${err.detail || text}`);
-    } catch {
-      console.error(`Error (${res.status}): ${text.slice(0, 500)}`);
-    }
-    process.exit(1);
-  }
-
-  let result;
-  try {
-    result = JSON.parse(res.buffer.toString());
-  } catch {
-    console.error('Error: unexpected response format from server.');
-    process.exit(1);
-  }
+    },
+    JSON.stringify({
+      messages: [{ role: 'user', content: question }],
+      chat_id: id,
+      skip_check: !!chatId,
+    }),
+  );
 
   if (!Array.isArray(result)) {
     console.error('Error: unexpected response format from server.');
     process.exit(1);
   }
 
-  // Find last assistant message
   const lastAssistant = result.findLast(m => m.role === 'assistant');
   if (!lastAssistant) {
     console.error('No response from Dot.');
@@ -91,27 +54,45 @@ export async function ask(question, chatId, { noCache = false } = {}) {
 
   const additionalData = lastAssistant.additional_data || {};
   const assets = additionalData.assets || {};
+  const rawChatId = additionalData.chat_id || id;
+  // Sanitize chat ID to prevent path traversal from malicious server responses
+  const actualChatId = rawChatId.replace(/[\/\\\.]+/g, '_').replace(/^_+|_+$/g, '');
 
-  // Create temp directory for downloads
-  const actualChatId = additionalData.chat_id || id;
-  const tempDir = join(tmpdir(), 'getdot', actualChatId);
+  const tempDir = join(tmpdir(), 'getdot', actualChatId || 'unknown');
   mkdirSync(tempDir, { recursive: true });
 
-  // Download files
+  const downloadedFiles = await downloadAssets(assets, tempDir, token);
+
+  // Cache the response (only for new conversations)
+  if (!chatId) {
+    setCache({ server, question, user: userHash }, {
+      message: lastAssistant,
+      downloadedFiles,
+      chatId: actualChatId,
+      additionalData,
+    });
+  }
+
+  formatOutput(lastAssistant, downloadedFiles, actualChatId, additionalData);
+}
+
+/**
+ * Download all assets (charts, CSVs, files) to the temp directory.
+ */
+async function downloadAssets(assets, tempDir, token) {
   const downloadedFiles = {};
+
   for (const [key, asset] of Object.entries(assets)) {
     if (!asset || typeof asset !== 'object') continue;
 
     try {
       if (asset.chart_download_url) {
-        const fileName = `${key}.png`;
-        const filePath = join(tempDir, fileName);
-        await downloadFile(asset.chart_download_url, filePath);
+        const filePath = join(tempDir, `${key}.png`);
+        await downloadFile(asset.chart_download_url, filePath, token);
         downloadedFiles[key] = filePath;
       }
       if (asset.csv_download_url) {
-        const fileName = `${key}.csv`;
-        const filePath = join(tempDir, fileName);
+        const filePath = join(tempDir, `${key}.csv`);
         await downloadFile(asset.csv_download_url, filePath, token);
         downloadedFiles[key] = filePath;
       }
@@ -129,18 +110,7 @@ export async function ask(question, chatId, { noCache = false } = {}) {
     }
   }
 
-  // Cache the response (only for new conversations)
-  if (!chatId) {
-    const userHash = createHash('sha256').update(token).digest('hex').slice(0, 8);
-    setCache({ server, question, user: userHash }, {
-      message: lastAssistant,
-      downloadedFiles,
-      chatId: actualChatId,
-      additionalData,
-    });
-  }
-
-  formatOutput(lastAssistant, downloadedFiles, actualChatId, additionalData);
+  return downloadedFiles;
 }
 
 /**
@@ -152,65 +122,32 @@ function formatOutput(message, downloadedFiles, chatId, additionalData) {
   const lines = [];
 
   for (const item of formattedResult) {
-    const itemType = item.type;
-    const ref = item.data;
+    const { type, data: ref } = item;
 
-    if (itemType === 'text') {
+    if (type === 'text') {
       lines.push(ref);
       lines.push('');
-    } else if (itemType === 'dataframe' && ref && assets[ref]) {
-      const asset = assets[ref];
-      if (asset.sql_query) {
-        lines.push('SQL Query:');
-        lines.push(`  ${asset.sql_query}`);
-        lines.push('');
-      }
-      if (asset.text_preview) {
-        const shape = asset.shape;
-        const shapeStr = shape ? ` (${shape[0]} rows x ${shape[1]} columns)` : '';
-        lines.push(`Data${shapeStr}:`);
-        for (const row of asset.text_preview.split('\n')) {
-          if (row.trim()) lines.push(`  ${row}`);
-        }
-        lines.push('');
-      }
-      if (asset.text_summary) {
-        lines.push(`  ${asset.text_summary}`);
-        lines.push('');
-      }
-      if (downloadedFiles[ref]) {
-        lines.push(`Data saved to: ${downloadedFiles[ref]}`);
-      }
-    } else if (itemType === 'chart' && ref && assets[ref]) {
-      const asset = assets[ref];
-      if (asset.interpretation) {
-        lines.push(asset.interpretation);
-        lines.push('');
-      }
-      if (downloadedFiles[ref]) {
-        lines.push(`Chart saved to: ${downloadedFiles[ref]}`);
-      }
-    } else if (itemType === 'file' && ref && assets[ref]) {
-      if (downloadedFiles[ref]) {
-        lines.push(`File saved to: ${downloadedFiles[ref]}`);
-      }
+    } else if (type === 'dataframe' && ref && assets[ref]) {
+      formatDataframe(lines, assets[ref], downloadedFiles[ref]);
+    } else if (type === 'chart' && ref && assets[ref]) {
+      formatChart(lines, assets[ref], downloadedFiles[ref]);
+    } else if (type === 'file' && ref && downloadedFiles[ref]) {
+      lines.push(`File saved to: ${downloadedFiles[ref]}`);
     }
   }
 
-  // If no formatted_result, fall back to message content
+  // Fall back to message content if no formatted_result
   if (formattedResult.length === 0 && message.content) {
     lines.push(message.content);
     lines.push('');
   }
 
-  // Dot URL and follow-up tip
   if (additionalData.dot_url) {
     lines.push('');
     lines.push(`Open in Dot: ${additionalData.dot_url}`);
   }
   lines.push(`Use --chat ${chatId} for follow-up questions`);
 
-  // Suggested follow-ups
   const suggestions = message.suggested_follow_ups;
   if (suggestions && suggestions.length > 0) {
     lines.push('');
@@ -221,4 +158,38 @@ function formatOutput(message, downloadedFiles, chatId, additionalData) {
   }
 
   console.log(lines.join('\n'));
+}
+
+function formatDataframe(lines, asset, filePath) {
+  if (asset.sql_query) {
+    lines.push('SQL Query:');
+    lines.push(`  ${asset.sql_query}`);
+    lines.push('');
+  }
+  if (asset.text_preview) {
+    const shape = asset.shape;
+    const shapeStr = shape ? ` (${shape[0]} rows x ${shape[1]} columns)` : '';
+    lines.push(`Data${shapeStr}:`);
+    for (const row of asset.text_preview.split('\n')) {
+      if (row.trim()) lines.push(`  ${row}`);
+    }
+    lines.push('');
+  }
+  if (asset.text_summary) {
+    lines.push(`  ${asset.text_summary}`);
+    lines.push('');
+  }
+  if (filePath) {
+    lines.push(`Data saved to: ${filePath}`);
+  }
+}
+
+function formatChart(lines, asset, filePath) {
+  if (asset.interpretation) {
+    lines.push(asset.interpretation);
+    lines.push('');
+  }
+  if (filePath) {
+    lines.push(`Chart saved to: ${filePath}`);
+  }
 }

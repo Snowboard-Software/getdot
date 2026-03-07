@@ -1,51 +1,16 @@
-import { getToken, getServer } from './config.mjs';
-import { request } from './http.mjs';
+import { requireAuth } from './config.mjs';
+import { apiRequest } from './http.mjs';
 
 /**
  * Fetch and display the org data catalog.
  */
 export async function catalog() {
-  const token = getToken();
-  if (!token) {
-    console.error('Not authenticated. Run: getdot login');
-    process.exit(1);
-  }
+  const { token, server } = requireAuth();
 
-  const server = getServer();
-
-  let res;
-  try {
-    res = await request(`${server}/api/cli/catalog`, {
-      method: 'GET',
-      headers: { 'X-API-KEY': token, 'X-Requested-With': 'XMLHttpRequest' },
-    });
-  } catch (err) {
-    console.error(`Connection failed: ${err.message}`);
-    console.error(`Server: ${server}`);
-    process.exit(1);
-  }
-
-  if (res.status === 401) {
-    console.error('Authentication failed. Run: getdot login');
-    process.exit(1);
-  }
-  if (res.status >= 400) {
-    const text = res.buffer.toString();
-    try {
-      console.error(`Error: ${JSON.parse(text).detail || text}`);
-    } catch {
-      console.error(`Error (${res.status}): ${text.slice(0, 500)}`);
-    }
-    process.exit(1);
-  }
-
-  let data;
-  try {
-    data = JSON.parse(res.buffer.toString());
-  } catch {
-    console.error('Error: unexpected response format from server.');
-    process.exit(1);
-  }
+  const data = await apiRequest(`${server}/api/cli/catalog`, {
+    method: 'GET',
+    headers: { 'X-API-KEY': token, 'X-Requested-With': 'XMLHttpRequest' },
+  });
 
   formatCatalog(data, server);
 }
@@ -101,8 +66,7 @@ function formatCatalog(data, server) {
     lines.push('');
   }
 
-  const assets = data.external_assets || {};
-  const assetEntries = Object.entries(assets);
+  const assetEntries = Object.entries(data.external_assets || {});
   if (assetEntries.length > 0) {
     const parts = assetEntries.map(([type, count]) => `${count} ${type}${count !== 1 ? 's' : ''}`);
     lines.push(`External Assets: ${parts.join(', ')}`);

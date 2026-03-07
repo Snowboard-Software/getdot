@@ -27,6 +27,9 @@ for (let i = 0; i < args.length; i++) {
     clearCache();
     console.log('Cache cleared.');
     process.exit(0);
+  } else if (args[i] === '--version' || args[i] === '-v') {
+    console.log('getdot 0.1.0');
+    process.exit(0);
   } else if (args[i] === '--help' || args[i] === '-h') {
     printHelp();
     process.exit(0);
@@ -97,5 +100,6 @@ Options:
   --token <token>  API token for manual login
   --no-cache       Skip cache and force fresh request
   --clear-cache    Clear all cached responses
+  -v, --version    Show version
   -h, --help       Show this help message`);
 }

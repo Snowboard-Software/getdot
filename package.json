@@ -1,18 +1,9 @@
 {
   "name": "getdot",
   "version": "0.1.0",
+  "private": true,
   "description": "Query your company data from the terminal using Dot, your AI data analyst",
   "type": "module",
-  "bin": {
-    "getdot": "./bin/getdot.mjs"
-  },
-  "files": [
-    "bin/",
-    "src/",
-    "SKILL.md",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "test": "node --test tests/cli.test.mjs tests/cache.test.mjs tests/e2e.test.mjs",
     "test:unit": "node --test tests/cli.test.mjs",
@@ -21,15 +12,10 @@
     "build": "bun scripts/build.mjs",
     "build:local": "bun build --compile bin/getdot.mjs --outfile dist/getdot"
   },
-  "keywords": ["dot", "ai", "data", "sql", "analytics", "cli"],
-  "author": "Dot (getdot.ai)",
   "license": "MIT",
   "homepage": "https://getdot.ai",
   "repository": {
     "type": "git",
     "url": "https://github.com/Snowboard-Software/getdot"
-  },
-  "engines": {
-    "node": ">=18"
   }
 }

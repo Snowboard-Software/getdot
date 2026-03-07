@@ -89,10 +89,10 @@ Use `--no-cache` to force a fresh request, or `--clear-cache` to wipe all cached
 
 ### Error: not authenticated
 
-If you get "Not authenticated", tell the user to run:
+If you get "Not authenticated", tell the user to install and login:
 
 ```bash
-npm install -g getdot
+curl -fsSL https://raw.githubusercontent.com/Snowboard-Software/getdot/main/scripts/install.sh | sh
 getdot login
 ```
 

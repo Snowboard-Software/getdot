@@ -1,11 +1,10 @@
 import { getToken, getServer } from './config.mjs';
 import { request } from './http.mjs';
-import { getCache, setCache, TTL } from './cache.mjs';
 
 /**
  * Fetch and display the org data catalog.
  */
-export async function catalog({ noCache = false } = {}) {
+export async function catalog() {
   const token = getToken();
   if (!token) {
     console.error('Not authenticated. Run: getdot login');
@@ -13,15 +12,6 @@ export async function catalog({ noCache = false } = {}) {
   }
 
   const server = getServer();
-
-  // Check cache
-  if (!noCache) {
-    const cached = getCache('catalog', { server }, TTL.catalog);
-    if (cached) {
-      formatCatalog(cached, server);
-      return;
-    }
-  }
 
   let res;
   try {
@@ -56,9 +46,6 @@ export async function catalog({ noCache = false } = {}) {
     console.error('Error: unexpected response format from server.');
     process.exit(1);
   }
-
-  // Cache the response
-  setCache('catalog', { server }, data);
 
   formatCatalog(data, server);
 }

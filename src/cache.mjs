@@ -3,7 +3,7 @@
  *
  * Cache location: ~/.cache/getdot/
  * Each entry is a JSON file keyed by SHA-256 hash of the request.
- * TTL is per-entry and checked on read.
+ * Entries never expire — use --no-cache or --clear-cache for fresh data.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, statSync } from 'fs';
@@ -13,41 +13,31 @@ import { createHash } from 'crypto';
 
 const CACHE_DIR = join(homedir(), '.cache', 'getdot');
 
-// TTLs in milliseconds
-export const TTL = {
-  catalog: 60 * 60 * 1000,  // 1 hour
-  ask: 5 * 60 * 1000,       // 5 minutes
-};
-
 function ensureCacheDir() {
   mkdirSync(CACHE_DIR, { recursive: true });
 }
 
 /**
- * Generate a cache key from a category + params object.
+ * Generate a cache key from params.
  */
-function cacheKey(category, params) {
+function cacheKey(params) {
   const hash = createHash('sha256')
-    .update(JSON.stringify({ category, ...params }))
+    .update(JSON.stringify(params))
     .digest('hex')
     .slice(0, 16);
-  return `${category}-${hash}`;
+  return `ask-${hash}`;
 }
 
 /**
- * Get a cached entry if it exists and hasn't expired.
+ * Get a cached entry if it exists.
  * Returns the cached data or null.
  */
-export function getCache(category, params, ttl) {
+export function getCache(params) {
   try {
-    const key = cacheKey(category, params);
+    const key = cacheKey(params);
     const filePath = join(CACHE_DIR, `${key}.json`);
     const raw = readFileSync(filePath, 'utf-8');
-    const entry = JSON.parse(raw);
-    if (Date.now() - entry.timestamp > ttl) {
-      return null;
-    }
-    return entry.data;
+    return JSON.parse(raw).data;
   } catch {
     return null;
   }
@@ -56,33 +46,23 @@ export function getCache(category, params, ttl) {
 /**
  * Store data in the cache.
  */
-export function setCache(category, params, data) {
+export function setCache(params, data) {
   try {
     ensureCacheDir();
-    const key = cacheKey(category, params);
+    const key = cacheKey(params);
     const filePath = join(CACHE_DIR, `${key}.json`);
-    const entry = { timestamp: Date.now(), category, data };
-    writeFileSync(filePath, JSON.stringify(entry));
+    writeFileSync(filePath, JSON.stringify({ timestamp: Date.now(), data }));
   } catch {
     // Non-fatal: cache write failures shouldn't break the CLI
   }
 }
 
 /**
- * Clear all cached entries, or just a specific category.
+ * Clear all cached entries.
  */
-export function clearCache(category) {
+export function clearCache() {
   try {
-    if (!category) {
-      rmSync(CACHE_DIR, { recursive: true, force: true });
-      return;
-    }
-    ensureCacheDir();
-    for (const file of readdirSync(CACHE_DIR)) {
-      if (file.startsWith(`${category}-`)) {
-        rmSync(join(CACHE_DIR, file), { force: true });
-      }
-    }
+    rmSync(CACHE_DIR, { recursive: true, force: true });
   } catch {
     // ignore
   }

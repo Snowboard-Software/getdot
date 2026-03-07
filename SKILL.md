@@ -72,10 +72,10 @@ there and can be parsed for further analysis.
 
 ### Caching
 
-Responses are cached locally to avoid redundant API calls:
-- `getdot catalog` is cached for 1 hour
-- `getdot "question"` is cached for 5 minutes
-- Follow-ups with `--chat` are never cached
+Ask responses are cached permanently so the same question returns instantly:
+- `getdot "question"` — cached forever until `--clear-cache`
+- Follow-ups with `--chat` are never cached (always fresh)
+- `getdot catalog` is never cached (already fast, no LLM)
 
 Use `--no-cache` to force a fresh request, or `--clear-cache` to wipe all cached data.
 
@@ -114,6 +114,6 @@ getdot "Show me a chart of monthly revenue trend for the past 12 months"
 # Specific filters
 getdot "Top 10 customers by order count in Q4 2025, US only"
 
-# Force fresh data (bypass cache)
-getdot catalog --no-cache
+# Force fresh answer (bypass cache)
+getdot "What were total sales last month?" --no-cache
 ```

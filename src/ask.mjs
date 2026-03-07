@@ -3,7 +3,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { getToken, getServer } from './config.mjs';
 import { request, downloadFile } from './http.mjs';
-import { getCache, setCache, TTL } from './cache.mjs';
+import { getCache, setCache } from './cache.mjs';
 
 /**
  * Ask Dot a question via the agentic endpoint.
@@ -20,7 +20,7 @@ export async function ask(question, chatId, { noCache = false } = {}) {
 
   // Check cache (only for new conversations — follow-ups with --chat always go to server)
   if (!noCache && !chatId) {
-    const cached = getCache('ask', { server, question }, TTL.ask);
+    const cached = getCache({ server, question });
     if (cached) {
       formatOutput(cached.message, cached.downloadedFiles, cached.chatId, cached.additionalData);
       return;
@@ -129,7 +129,7 @@ export async function ask(question, chatId, { noCache = false } = {}) {
 
   // Cache the response (only for new conversations)
   if (!chatId) {
-    setCache('ask', { server, question }, {
+    setCache({ server, question }, {
       message: lastAssistant,
       downloadedFiles,
       chatId: actualChatId,

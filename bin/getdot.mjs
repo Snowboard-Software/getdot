@@ -68,7 +68,7 @@ switch (command) {
     break;
 
   case 'catalog':
-    await catalog({ noCache });
+    await catalog();
     break;
 
   default: {

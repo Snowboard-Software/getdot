@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test tests/cli.test.mjs tests/e2e.test.mjs",
+    "test": "node --test tests/cli.test.mjs tests/cache.test.mjs tests/e2e.test.mjs",
     "test:unit": "node --test tests/cli.test.mjs",
     "test:e2e": "node --test tests/e2e.test.mjs",
     "test:integration": "node --test tests/integration.test.mjs",

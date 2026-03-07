@@ -1,29 +1,11 @@
 import { getToken, getServer } from './config.mjs';
-
-/**
- * Make an HTTPS/HTTP request using Node built-ins.
- */
-function request(url, options) {
-  return new Promise((resolve, reject) => {
-    const mod = url.startsWith('https') ? import('https') : import('http');
-    mod.then(({ default: http }) => {
-      const req = http.request(url, options, (res) => {
-        const chunks = [];
-        res.on('data', (chunk) => chunks.push(chunk));
-        res.on('end', () => {
-          resolve({ status: res.statusCode, buffer: Buffer.concat(chunks) });
-        });
-      });
-      req.on('error', reject);
-      req.end();
-    });
-  });
-}
+import { request } from './http.mjs';
+import { getCache, setCache, TTL } from './cache.mjs';
 
 /**
  * Fetch and display the org data catalog.
  */
-export async function catalog() {
+export async function catalog({ noCache = false } = {}) {
   const token = getToken();
   if (!token) {
     console.error('Not authenticated. Run: getdot login');
@@ -31,6 +13,16 @@ export async function catalog() {
   }
 
   const server = getServer();
+
+  // Check cache
+  if (!noCache) {
+    const cached = getCache('catalog', { server }, TTL.catalog);
+    if (cached) {
+      formatCatalog(cached, server);
+      return;
+    }
+  }
+
   let res;
   try {
     res = await request(`${server}/api/cli/catalog`, {
@@ -65,6 +57,9 @@ export async function catalog() {
     process.exit(1);
   }
 
+  // Cache the response
+  setCache('catalog', { server }, data);
+
   formatCatalog(data, server);
 }
 
@@ -82,12 +77,10 @@ function formatCatalog(data, server) {
   lines.push(`Server: ${server}`);
   lines.push('');
 
-  // Capabilities
   if (data.capabilities && data.capabilities.length > 0) {
     lines.push(`Capabilities: ${data.capabilities.join(', ')}`);
   }
 
-  // Custom skills
   if (data.custom_skills && data.custom_skills.length > 0) {
     const names = data.custom_skills.map(s => s.name || s).join(', ');
     lines.push(`Custom Skills: ${names}`);
@@ -95,7 +88,6 @@ function formatCatalog(data, server) {
 
   if (data.capabilities || data.custom_skills) lines.push('');
 
-  // Connections
   const connections = data.connections || [];
   if (connections.length > 0) {
     lines.push(`Data Sources (${connections.length} connection${connections.length !== 1 ? 's' : ''}):`);
@@ -106,7 +98,6 @@ function formatCatalog(data, server) {
     lines.push('');
   }
 
-  // Tables
   const tables = data.tables || [];
   const total = data.total_tables || tables.length;
   if (tables.length > 0) {
@@ -123,7 +114,6 @@ function formatCatalog(data, server) {
     lines.push('');
   }
 
-  // External assets
   const assets = data.external_assets || {};
   const assetEntries = Object.entries(assets);
   if (assetEntries.length > 0) {

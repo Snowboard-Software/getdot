@@ -3,13 +3,15 @@
 import { ask } from '../src/ask.mjs';
 import { catalog } from '../src/catalog.mjs';
 import { loginBrowser, loginToken, showStatus, logout } from '../src/login.mjs';
+import { clearCache } from '../src/cache.mjs';
 
 const args = process.argv.slice(2);
 
-// Parse --chat and --server flags
+// Parse flags
 let chatId = null;
 let serverUrl = null;
 let tokenValue = null;
+let noCache = false;
 const positional = [];
 
 for (let i = 0; i < args.length; i++) {
@@ -19,6 +21,12 @@ for (let i = 0; i < args.length; i++) {
     serverUrl = args[++i];
   } else if (args[i] === '--token' && i + 1 < args.length) {
     tokenValue = args[++i];
+  } else if (args[i] === '--no-cache') {
+    noCache = true;
+  } else if (args[i] === '--clear-cache') {
+    clearCache();
+    console.log('Cache cleared.');
+    process.exit(0);
   } else if (args[i] === '--help' || args[i] === '-h') {
     printHelp();
     process.exit(0);
@@ -60,13 +68,12 @@ switch (command) {
     break;
 
   case 'catalog':
-    await catalog();
+    await catalog({ noCache });
     break;
 
   default: {
-    // Treat everything as a question
     const question = positional.join(' ');
-    await ask(question, chatId);
+    await ask(question, chatId, { noCache });
     break;
   }
 }
@@ -88,5 +95,7 @@ Options:
   --chat <id>      Continue a previous conversation
   --server <url>   Custom Dot server URL
   --token <token>  API token for manual login
+  --no-cache       Skip cache and force fresh request
+  --clear-cache    Clear all cached responses
   -h, --help       Show this help message`);
 }

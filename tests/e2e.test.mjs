@@ -359,4 +359,55 @@ describe('getdot E2E', () => {
     // Re-login for any subsequent tests
     run(['login', '--token', FAKE_TOKEN, '--server', `http://127.0.0.1:${mockPort}`]);
   });
+
+  // ── Cache Integration ──
+
+  test('catalog is cached on second call', () => {
+    // Clear cache first
+    run(['--clear-cache']);
+    // First call — hits server
+    const out1 = run(['catalog']);
+    assert.match(out1, /Dot Data Catalog/);
+    // Second call — should return same data (from cache)
+    const out2 = run(['catalog']);
+    assert.match(out2, /Dot Data Catalog/);
+    assert.strictEqual(out1, out2);
+  });
+
+  test('--no-cache bypasses cache for catalog', () => {
+    run(['--clear-cache']);
+    run(['catalog']);
+    // With --no-cache, it should still work (hits server again)
+    const out = run(['catalog', '--no-cache']);
+    assert.match(out, /Dot Data Catalog/);
+  });
+
+  test('ask response is cached on repeat', () => {
+    run(['--clear-cache']);
+    const out1 = run(['"What were total sales?"']);
+    assert.match(out1, /Sales were \$1\.2M/);
+    // Second identical question — should get cached response
+    const out2 = run(['"What were total sales?"']);
+    assert.match(out2, /Sales were \$1\.2M/);
+  });
+
+  test('--chat bypasses ask cache', () => {
+    run(['--clear-cache']);
+    // Follow-up with --chat should always go to server
+    const out = run(['"Follow up"', '--chat', 'my-chat-id']);
+    assert.match(out, /Sales were \$1\.2M/);
+  });
+
+  test('--no-cache bypasses ask cache', () => {
+    run(['--clear-cache']);
+    run(['"Cached question"']);
+    const out = run(['"Cached question"', '--no-cache']);
+    assert.match(out, /Sales were \$1\.2M/);
+  });
+
+  test('--clear-cache empties cache', () => {
+    run(['catalog']);
+    const out = run(['--clear-cache']);
+    assert.match(out, /Cache cleared/);
+  });
 });

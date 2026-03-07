@@ -1,57 +1,14 @@
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { getToken, getServer } from './config.mjs';
-
-/**
- * Make an HTTPS/HTTP request using Node built-ins (no dependencies).
- */
-function request(url, options, body) {
-  return new Promise((resolve, reject) => {
-    const mod = url.startsWith('https') ? import('https') : import('http');
-    mod.then(({ default: http }) => {
-      const req = http.request(url, options, (res) => {
-        const chunks = [];
-        res.on('data', (chunk) => chunks.push(chunk));
-        res.on('end', () => {
-          const buffer = Buffer.concat(chunks);
-          resolve({ status: res.statusCode, headers: res.headers, buffer });
-        });
-      });
-      req.on('error', reject);
-      if (body) req.write(body);
-      req.end();
-    });
-  });
-}
-
-/**
- * Download a file from a URL to a local path. Follows up to 5 redirects.
- */
-async function downloadFile(url, destPath, token, maxRedirects = 5) {
-  const headers = {};
-  if (token) headers['X-API-KEY'] = token;
-
-  let currentUrl = url;
-  for (let i = 0; i <= maxRedirects; i++) {
-    const res = await request(currentUrl, { method: 'GET', headers });
-    if (res.status >= 300 && res.status < 400 && res.headers.location) {
-      currentUrl = res.headers.location;
-      continue;
-    }
-    if (res.status >= 400) {
-      throw new Error(`Download failed (${res.status}): ${currentUrl}`);
-    }
-    writeFileSync(destPath, res.buffer);
-    return;
-  }
-  throw new Error(`Too many redirects: ${url}`);
-}
+import { request, downloadFile } from './http.mjs';
+import { getCache, setCache, TTL } from './cache.mjs';
 
 /**
  * Ask Dot a question via the agentic endpoint.
  */
-export async function ask(question, chatId) {
+export async function ask(question, chatId, { noCache = false } = {}) {
   const token = getToken();
   if (!token) {
     console.error('Not authenticated. Run: getdot login');
@@ -60,6 +17,15 @@ export async function ask(question, chatId) {
 
   const server = getServer();
   const id = chatId || `cli-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+  // Check cache (only for new conversations — follow-ups with --chat always go to server)
+  if (!noCache && !chatId) {
+    const cached = getCache('ask', { server, question }, TTL.ask);
+    if (cached) {
+      formatOutput(cached.message, cached.downloadedFiles, cached.chatId, cached.additionalData);
+      return;
+    }
+  }
 
   const payload = JSON.stringify({
     messages: [{ role: 'user', content: question }],
@@ -157,12 +123,20 @@ export async function ask(question, chatId) {
         }
       }
     } catch (e) {
-      // Non-fatal: continue even if a file download fails
       console.error(`Warning: failed to download ${key}: ${e.message}`);
     }
   }
 
-  // Format output
+  // Cache the response (only for new conversations)
+  if (!chatId) {
+    setCache('ask', { server, question }, {
+      message: lastAssistant,
+      downloadedFiles,
+      chatId: actualChatId,
+      additionalData,
+    });
+  }
+
   formatOutput(lastAssistant, downloadedFiles, actualChatId, additionalData);
 }
 
@@ -174,7 +148,6 @@ function formatOutput(message, downloadedFiles, chatId, additionalData) {
   const formattedResult = additionalData.formatted_result || [];
   const lines = [];
 
-  // Walk formatted_result in order
   for (const item of formattedResult) {
     const itemType = item.type;
     const ref = item.data;
@@ -193,7 +166,6 @@ function formatOutput(message, downloadedFiles, chatId, additionalData) {
         const shape = asset.shape;
         const shapeStr = shape ? ` (${shape[0]} rows x ${shape[1]} columns)` : '';
         lines.push(`Data${shapeStr}:`);
-        // Indent each line of the preview
         for (const row of asset.text_preview.split('\n')) {
           if (row.trim()) lines.push(`  ${row}`);
         }

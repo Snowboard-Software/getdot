@@ -22,6 +22,23 @@ Use `getdot` when the user asks about:
 
 ## How to use
 
+### Discover available data first
+
+Before asking questions, run `getdot catalog` to see what data is available:
+
+```bash
+getdot catalog
+```
+
+This returns instantly (no LLM call) and shows:
+- Available capabilities (SQL, visualizations, scheduled reports, text analysis)
+- Custom skills configured for the org
+- Data source connections with table counts
+- Top 50 tables sorted by usage, with descriptions and column/row counts
+- External assets (Looker dashboards, etc.)
+
+### Ask questions
+
 Run `getdot` via Bash with the question in quotes:
 
 ```bash
@@ -53,8 +70,18 @@ Charts are saved as PNG files to `/tmp/getdot/<chat-id>/`. You can read these
 files directly since you have multimodal capabilities. CSV files are also saved
 there and can be parsed for further analysis.
 
+### Caching
+
+Responses are cached locally to avoid redundant API calls:
+- `getdot catalog` is cached for 1 hour
+- `getdot "question"` is cached for 5 minutes
+- Follow-ups with `--chat` are never cached
+
+Use `--no-cache` to force a fresh request, or `--clear-cache` to wipe all cached data.
+
 ### Tips for good questions
 
+- Start with `getdot catalog` to understand what tables and data are available
 - Be specific: include metric names, time periods, filters
 - One question at a time works best
 - Use follow-ups (`--chat`) to refine rather than asking compound questions
@@ -72,6 +99,9 @@ getdot login
 ### Examples
 
 ```bash
+# See what data is available
+getdot catalog
+
 # Simple question
 getdot "What were total sales last month?"
 
@@ -83,4 +113,7 @@ getdot "Show me a chart of monthly revenue trend for the past 12 months"
 
 # Specific filters
 getdot "Top 10 customers by order count in Q4 2025, US only"
+
+# Force fresh data (bypass cache)
+getdot catalog --no-cache
 ```

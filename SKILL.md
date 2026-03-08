@@ -123,7 +123,7 @@ Use `--no-cache` to force a fresh request, or `--clear-cache` to wipe all cached
 If `getdot` is not found, tell the user to install it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Snowboard-Software/getdot/main/scripts/install.sh | sh
+curl -fsSL https://app.getdot.ai/install.sh | sh
 getdot login
 ```
 

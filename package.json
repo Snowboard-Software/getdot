@@ -1,6 +1,6 @@
 {
   "name": "getdot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Query your company data from the terminal using Dot, your AI data analyst",
   "type": "module",

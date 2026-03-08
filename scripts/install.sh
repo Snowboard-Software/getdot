@@ -1,8 +1,11 @@
 #!/bin/sh
 # Install getdot CLI binary.
-# Usage: curl -fsSL https://getdot.ai/install.sh | sh
+# Usage: curl -fsSL https://app.getdot.ai/install.sh | sh
 #
-# Respects GETDOT_INSTALL_DIR (default: /usr/local/bin)
+# Environment variables:
+#   TOKEN              — API token for automatic login (skips `getdot login`)
+#   SERVER             — Custom server URL (default: https://app.getdot.ai)
+#   GETDOT_INSTALL_DIR — Binary install directory (default: /usr/local/bin)
 
 set -e
 
@@ -84,7 +87,21 @@ if mkdir -p "$SKILL_DIR" 2>/dev/null; then
   fi
 fi
 
-echo ""
-echo "Get started:"
-echo "  getdot login"
-echo "  getdot \"What were total sales last month?\""
+# Auto-configure credentials if TOKEN is provided (one-line setup from app.getdot.ai/cli-setup)
+if [ -n "$TOKEN" ]; then
+  CONFIG_DIR="$HOME/.config/getdot"
+  mkdir -p "$CONFIG_DIR"
+  SERVER_URL="${SERVER:-https://app.getdot.ai}"
+  printf '{"token":"%s","server":"%s","created_at":"%s"}\n' "$TOKEN" "$SERVER_URL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CONFIG_DIR/config.json"
+  chmod 600 "$CONFIG_DIR/config.json"
+  echo "Logged in automatically."
+  echo ""
+  echo "Get started:"
+  echo "  getdot catalog"
+  echo "  getdot \"What were total sales last month?\""
+else
+  echo ""
+  echo "Get started:"
+  echo "  getdot login"
+  echo "  getdot \"What were total sales last month?\""
+fi

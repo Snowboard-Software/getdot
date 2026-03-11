@@ -11,7 +11,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { createHash } from 'crypto';
 
-const CACHE_DIR = join(homedir(), '.cache', 'getdot');
+const CACHE_DIR = join(homedir(), '.cache', 'dot');
 
 function ensureCacheDir() {
   mkdirSync(CACHE_DIR, { recursive: true });

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-const CONFIG_DIR = join(homedir(), '.config', 'getdot');
+const CONFIG_DIR = join(homedir(), '.config', 'dot');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 export const DEFAULT_SERVER = 'https://app.getdot.ai';
@@ -43,7 +43,7 @@ export function getServer() {
 export function requireAuth() {
   const config = loadConfig();
   if (!config.token) {
-    console.error('Not authenticated. Run: getdot login');
+    console.error('Not authenticated. Run: dot login');
     process.exit(1);
   }
   return { token: config.token, server: config.server || DEFAULT_SERVER };

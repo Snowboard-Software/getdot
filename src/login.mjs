@@ -111,7 +111,7 @@ export function loginToken(token, serverUrl) {
 export function showStatus() {
   const config = loadConfig();
   if (!config.token) {
-    console.log('Not logged in. Run: getdot login');
+    console.log('Not logged in. Run: dot login');
     return;
   }
 

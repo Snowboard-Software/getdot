@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { ask } from '../src/ask.mjs';
 import { catalog } from '../src/catalog.mjs';
 import { loginBrowser, loginToken, showStatus, logout } from '../src/login.mjs';
 import { clearCache } from '../src/cache.mjs';
-
-const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
-const { version } = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+import { VERSION as version } from '../src/version.mjs';
 
 const args = process.argv.slice(2);
 
@@ -34,7 +29,7 @@ for (let i = 0; i < args.length; i++) {
     console.log('Cache cleared.');
     process.exit(0);
   } else if (args[i] === '--version' || args[i] === '-v') {
-    console.log(`getdot ${version}`);
+    console.log(`dot ${version}`);
     process.exit(0);
   } else if (args[i] === '--help' || args[i] === '-h') {
     printHelp();
@@ -55,7 +50,7 @@ switch (command) {
   case 'login':
     if (tokenValue) {
       loginToken(tokenValue, serverUrl);
-      console.log('Token saved. Run "getdot status" to verify.');
+      console.log('Token saved. Run "dot status" to verify.');
     } else {
       try {
         await loginBrowser(serverUrl);
@@ -88,17 +83,17 @@ switch (command) {
 }
 
 function printHelp() {
-  console.log(`getdot — Query your company data from the terminal
+  console.log(`dot — Query your company data from the terminal
 
 Usage:
-  getdot "What were total sales last month?"
-  getdot "Filter to US only" --chat <chat-id>
-  getdot login                        # Browser-based login
-  getdot login --token <TOKEN>        # Manual token login
-  getdot login --server <URL>         # Custom server
-  getdot catalog                      # Show available data overview
-  getdot status                       # Show login status
-  getdot logout                       # Clear credentials
+  dot "What were total sales last month?"
+  dot "Filter to US only" --chat <chat-id>
+  dot login                        # Browser-based login
+  dot login --token <TOKEN>        # Manual token login
+  dot login --server <URL>         # Custom server
+  dot catalog                      # Show available data overview
+  dot status                       # Show login status
+  dot logout                       # Clear credentials
 
 Options:
   --chat <id>      Continue a previous conversation

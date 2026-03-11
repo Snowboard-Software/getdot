@@ -43,7 +43,7 @@ export async function apiRequest(url, options, body) {
   }
 
   if (res.status === 401) {
-    console.error('Authentication failed. Run: getdot login');
+    console.error('Authentication failed. Run: dot login');
     process.exit(1);
   }
 

@@ -73,7 +73,7 @@ function formatCatalog(data, server) {
     lines.push('');
   }
 
-  lines.push('Tip: getdot "What were total sales last month?"');
+  lines.push('Tip: dot "What were total sales last month?"');
 
   console.log(lines.join('\n'));
 }

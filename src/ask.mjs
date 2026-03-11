@@ -58,7 +58,7 @@ export async function ask(question, chatId, { noCache = false } = {}) {
   // Sanitize chat ID to prevent path traversal from malicious server responses
   const actualChatId = rawChatId.replace(/[\/\\\.]+/g, '_').replace(/^_+|_+$/g, '');
 
-  const tempDir = join(tmpdir(), 'getdot', actualChatId || 'unknown');
+  const tempDir = join(tmpdir(), 'dot', actualChatId || 'unknown');
   mkdirSync(tempDir, { recursive: true });
 
   const downloadedFiles = await downloadAssets(assets, tempDir, token);

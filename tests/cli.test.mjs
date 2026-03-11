@@ -19,7 +19,7 @@ const GETDOT = join(__dirname, '..', 'bin', 'getdot.mjs');
 
 // Use an isolated HOME so we don't touch real config
 const TEST_HOME = join(tmpdir(), `getdot-test-${process.pid}`);
-const TEST_CONFIG_DIR = join(TEST_HOME, '.config', 'getdot');
+const TEST_CONFIG_DIR = join(TEST_HOME, '.config', 'dot');
 const TEST_CONFIG_PATH = join(TEST_CONFIG_DIR, 'config.json');
 
 function run(args, opts = {}) {
@@ -66,7 +66,7 @@ describe('getdot CLI', () => {
   test('--help shows usage', () => {
     const out = run(['--help']);
     assert.match(out, /Usage:/);
-    assert.match(out, /getdot login/);
+    assert.match(out, /dot login/);
     assert.match(out, /--chat/);
     assert.match(out, /--token/);
   });

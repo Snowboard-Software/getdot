@@ -1,137 +1,88 @@
-# getdot
+# Dot CLI and agent skill
 
-Query your company data from the terminal using [Dot](https://getdot.ai), your AI data analyst.
+Query your company's data from the terminal, Claude Code, Cursor, Codex or Gemini CLI with [Dot (getdot.ai)](https://www.getdot.ai), the AI data analyst.
 
-Dot writes SQL, runs queries, generates charts, and explains results — all from your terminal, Claude Code, or Cursor.
+Ask a question in plain English. Dot finds the right tables, writes and runs SQL on your own warehouse, and answers with the result, the SQL it ran, and charts. It applies the same permissions as your Dot workspace.
 
 ## Install
 
-```bash
-npm install -g getdot
-```
-
-Requires Node.js 18+. Zero dependencies.
-
-## Quick Start
+macOS and Linux:
 
 ```bash
-# Login (opens browser)
-getdot login
-
-# Ask a question
-getdot "What were total sales last month?"
-
-# Follow up
-getdot "Break down by region" --chat cli-m1abc2d-x4y5z6
+curl https://app.getdot.ai/install | sh    # US region
+curl https://eu.getdot.ai/install | sh     # EU region
 ```
 
-## Usage
+Windows (PowerShell):
 
-```
-getdot "your question"                # Ask a data question
-getdot "follow up" --chat <id>        # Continue a conversation
-getdot login                          # Browser-based login
-getdot login --token <TOKEN>          # Manual token login
-getdot login --server <URL>           # Custom Dot server
-getdot status                         # Show login status
-getdot logout                         # Clear credentials
+```powershell
+irm https://app.getdot.ai/install.ps1 | iex    # US region
+irm https://eu.getdot.ai/install.ps1 | iex     # EU region
 ```
 
-## Output
-
-Every response includes:
-
-- **Text explanation** — natural language answer
-- **SQL query** — the exact query that was executed
-- **Data preview** — first rows with column statistics
-- **Chart** — saved as PNG to `/tmp/getdot/<chat-id>/` (Claude Code can read these)
-- **CSV data** — full dataset saved locally
-- **Dot URL** — link to full interactive analysis in the browser
-- **Follow-up suggestions** — related questions you might want to ask
-
-### Example Output
-
-```
-Sales were $1.2M last month, up 15% from January.
-
-SQL Query:
-  SELECT date_trunc('month', order_date) as month, SUM(amount) as total
-  FROM orders WHERE order_date >= '2026-02-01' GROUP BY 1 ORDER BY 1
-
-Data (30 rows x 3 columns):
-  date, total, region
-  2026-02-01, 45230.50, US
-  2026-02-02, 38120.00, US
-  ...
-
-Chart saved to: /tmp/getdot/abc123/viz_monthly_sales.png
-Data saved to: /tmp/getdot/abc123/df_revenue.csv
-
-Open in Dot: https://app.getdot.ai/?c=abc123
-Use --chat abc123 for follow-up questions
-
-Suggested follow-ups:
-  - Break down by region
-  - Compare to last year
-```
-
-## AI Editor Integration
-
-### Claude Code
-
-Add the skill to Claude Code so it automatically uses Dot for data questions:
+The installer downloads the current `dot` binary from your Dot server and adds the Dot skill ([SKILL.md](SKILL.md) in this repository) to the AI coding agents it finds. Then sign in:
 
 ```bash
-mkdir -p ~/.claude/skills/getdot
-cp node_modules/getdot/SKILL.md ~/.claude/skills/getdot/SKILL.md
+dot login
 ```
 
-Then just ask Claude Code data questions naturally — it will use `getdot` via Bash.
+Don't have a workspace yet? [Start free](https://www.getdot.ai/pricing): 300 credits, no credit card.
 
-### Cursor
-
-Place `SKILL.md` in your project's `.cursor/skills/` directory:
+## Ask questions
 
 ```bash
-mkdir -p .cursor/skills
-cp node_modules/getdot/SKILL.md .cursor/skills/getdot.md
+dot "What were total sales last month?"
+dot "Break down by region" --chat <chat-id>
+dot catalog
 ```
 
-## Authentication
+Each answer prints the explanation, the SQL query, a data preview and a link to the full analysis in Dot. Charts and CSV files are saved locally, so your coding agent can read them.
 
-### Browser Login (recommended)
+## Manage your workspace
 
 ```bash
-getdot login
+dot notes list          # business context Dot uses to answer
+dot tables list         # tables Dot can query
+dot env list            # environments for testing changes before Production
+dot apps pull <id>      # data apps as code
+dot eval run suite.json # check answers against trusted numbers, for example in CI
 ```
 
-Opens your browser to Dot, authenticates, and saves a token locally.
+Run `dot --help` for every command.
 
-### Manual Token
+## Use Dot from AI agents
 
-Generate an API token from your Dot profile page, then:
+**Agent skill.** The installer adds it for you. To add it by hand:
 
 ```bash
-getdot login --token dot-eyJhbGci...
+npx skills add https://github.com/Snowboard-Software/getdot
 ```
 
-### Custom Server
+**Remote MCP server.** Connect Claude, Cursor, Windsurf, ChatGPT or any MCP client to:
+
+- US: `https://app.getdot.ai/ai/mcp`
+- EU: `https://eu.getdot.ai/ai/mcp`
+
+Claude, Cursor and Windsurf sign in with OAuth. Clients without OAuth send an MCP token in the `X-API-KEY` header (in Dot: Settings > Integrations > API Token > Generate MCP Token). Setup for each client: [MCP docs](https://docs.getdot.ai/developers/mcp). The server is listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.zurferr/dot`.
+
+## CI and headless servers
+
+Set the token through your CI secret store and choose the regional server:
 
 ```bash
-getdot login --server https://eu.getdot.ai
+export DOT_API_BASE_URL="https://app.getdot.ai"
+export DOT_API_TOKEN="YOUR_API_TOKEN"
 ```
 
-Tokens are stored in `~/.config/getdot/config.json` with `600` permissions.
+See [Evaluations in CI](https://docs.getdot.ai/developers/api/evaluations-in-ci).
 
-## How It Works
+## Links
 
-1. `getdot` sends your question to Dot's agentic API endpoint
-2. Dot writes SQL, executes it against your connected databases, and generates charts
-3. The response comes back with text previews (not raw data) and download URLs
-4. `getdot` downloads charts and CSVs to temp files locally
-5. Output is formatted for both human reading and AI editor consumption
+- Website: https://www.getdot.ai
+- Docs: [CLI](https://docs.getdot.ai/developers/cli), [MCP](https://docs.getdot.ai/developers/mcp), [API](https://docs.getdot.ai/developers/api)
+- Security: https://www.getdot.ai/security (SOC 2 Type II, GDPR)
 
-Your data stays secure — Dot enforces the same permissions as the web UI.
+This repository holds the agent skill and an early version of the CLI source. The installer always fetches the current CLI binary from your Dot server.
 
 ## License
 

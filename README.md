@@ -58,12 +58,14 @@ Run `dot --help` for every command.
 npx skills add https://github.com/Snowboard-Software/getdot
 ```
 
-**Remote MCP server.** Connect Claude, Cursor, Windsurf, ChatGPT or any MCP client to:
+**Remote MCP server.** Connect Claude, Cursor, Windsurf or any MCP client to:
 
 - US: `https://app.getdot.ai/ai/mcp`
 - EU: `https://eu.getdot.ai/ai/mcp`
 
-Claude, Cursor and Windsurf sign in with OAuth. Clients without OAuth send an MCP token in the `X-API-KEY` header (in Dot: Settings > Integrations > API Token > Generate MCP Token). Setup for each client: [MCP docs](https://docs.getdot.ai/developers/mcp). The server is listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.zurferr/dot`.
+ChatGPT has its own URL: `https://app.getdot.ai/chatgpt/mcp` (EU: `https://eu.getdot.ai/chatgpt/mcp`).
+
+Claude, ChatGPT, Cursor and Windsurf sign in with OAuth. Clients without OAuth send an MCP token in the `X-API-KEY` header. To get one, open your Profile in Dot, go to **Use Dot elsewhere > MCP**, open **Client can't do OAuth? Use an API token** and click **Generate token**. Setup for each client: [MCP docs](https://docs.getdot.ai/developers/mcp). The server is listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.zurferr/dot`.
 
 ## CI and headless servers
 

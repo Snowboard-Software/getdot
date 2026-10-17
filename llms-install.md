@@ -13,7 +13,7 @@ If you are not sure, ask the user which address they open Dot at (`app.getdot.ai
 
 ## 2. Get a token from the user
 
-Ask the user to create an MCP token in Dot: **Settings > Integrations**, choose the client, open the **API Token** tab, click **Generate MCP Token** and copy it. Never invent a token. A user without a Dot workspace can start free at https://www.getdot.ai/pricing.
+Ask the user to create an MCP token in Dot: open their **Profile**, scroll to **Use Dot elsewhere**, choose the **MCP** tab, open **Client can't do OAuth? Use an API token**, click **Generate token** and copy it. A new token replaces the previous one. Never invent a token. A user without a Dot workspace can start free at https://www.getdot.ai/pricing.
 
 ## 3. Add the server
 

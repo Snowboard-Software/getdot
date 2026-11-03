@@ -9,7 +9,7 @@
 
 import { execFileSync, spawn } from 'child_process';
 import http, { createServer } from 'http';
-import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync, statSync } from 'fs';
+import { existsSync, readFileSync, rmSync, writeFileSync, statSync, chmodSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -20,7 +20,7 @@ const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url))
 const GETDOT = join(__dirname, '..', 'bin', 'getdot.mjs');
 const MOCK_SERVER = join(__dirname, 'mock-server.mjs');
 const TEST_HOME = join(tmpdir(), `getdot-e2e-${process.pid}`);
-const TEST_CONFIG_DIR = join(TEST_HOME, '.config', 'getdot');
+const TEST_CONFIG_DIR = join(TEST_HOME, '.config', 'dot');
 const TEST_CONFIG_PATH = join(TEST_CONFIG_DIR, 'config.json');
 
 const FAKE_TOKEN = 'dot-eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QGUyZS5jb20iLCJvcmdfaWQiOiJlMmUub3JnIiwiZXhwIjoxOTAwMDAwMDAwfQ.e2etest';
@@ -84,8 +84,6 @@ describe('getdot E2E', () => {
   let mockPort;
 
   before(async () => {
-    mkdirSync(TEST_CONFIG_DIR, { recursive: true });
-
     // Start mock server in separate process (avoids execFileSync event loop blocking)
     const { child, port } = await startMockServer();
     mockChild = child;
@@ -234,7 +232,7 @@ describe('getdot E2E', () => {
 
   test('catalog shows tip', () => {
     const out = run(['catalog']);
-    assert.match(out, /Tip: getdot/);
+    assert.match(out, /Tip: dot "/);
   });
 
   // ── Browser Login Callback ──
@@ -347,10 +345,16 @@ describe('getdot E2E', () => {
   });
 
   test('config dir has restrictive permissions', { skip: process.platform === 'win32' ? 'Unix only' : false }, () => {
-    const mode = statSync(TEST_CONFIG_DIR).mode & 0o777;
-    // Should be 700 or 755 (recursive mkdir may create parents with 755)
-    assert.ok(mode <= 0o755, `Dir permissions ${mode.toString(8)} should be restrictive`);
-    assert.ok((mode & 0o077) === 0 || (mode & 0o077) === 0o55, 'Group/other should have no write access');
+    // The CLI creates the folder that holds the token (login, in before()), and it is the owner's alone.
+    assert.strictEqual((statSync(TEST_CONFIG_DIR).mode & 0o777).toString(8), '700');
+  });
+
+  test('login tightens a config folder and file that already existed', { skip: process.platform === 'win32' ? 'Unix only' : false }, () => {
+    chmodSync(TEST_CONFIG_DIR, 0o775);
+    chmodSync(TEST_CONFIG_PATH, 0o644);
+    run(['login', '--token', FAKE_TOKEN, '--server', `http://127.0.0.1:${mockPort}`]);
+    assert.strictEqual((statSync(TEST_CONFIG_DIR).mode & 0o777).toString(8), '700');
+    assert.strictEqual((statSync(TEST_CONFIG_PATH).mode & 0o777).toString(8), '600');
   });
 
   test('logout clears token', () => {

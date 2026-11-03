@@ -11,7 +11,7 @@ import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 
 const TEST_HOME = join(tmpdir(), `getdot-cache-test-${process.pid}`);
-const TEST_CACHE_DIR = join(TEST_HOME, '.cache', 'getdot');
+const TEST_CACHE_DIR = join(TEST_HOME, '.cache', 'dot');
 
 import { execFileSync } from 'child_process';
 
@@ -75,7 +75,7 @@ describe('Cache module', () => {
       setCache({ server: 'http://test', question: 'q' }, { answer: 'old data' });
 
       // Backdate timestamp to 30 days ago
-      const cacheDir = join(homedir(), '.cache', 'getdot');
+      const cacheDir = join(homedir(), '.cache', 'dot');
       const { readdirSync } = await import('fs');
       const files = readdirSync(cacheDir).filter(f => f.startsWith('ask-'));
       for (const f of files) {

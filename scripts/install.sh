@@ -91,8 +91,10 @@ fi
 
 # Auto-configure credentials if TOKEN is provided (one-line setup from app.getdot.ai/cli-setup)
 if [ -n "$TOKEN" ]; then
-  CONFIG_DIR="$HOME/.config/getdot"
+  # Where the CLI reads it (src/config.mjs).
+  CONFIG_DIR="$HOME/.config/dot"
   mkdir -p "$CONFIG_DIR"
+  chmod 700 "$CONFIG_DIR"
   SERVER_URL="${SERVER:-https://app.getdot.ai}"
   printf '{"token":"%s","server":"%s","created_at":"%s"}\n' "$TOKEN" "$SERVER_URL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CONFIG_DIR/config.json"
   chmod 600 "$CONFIG_DIR/config.json"

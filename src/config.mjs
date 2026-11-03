@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, chmodSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -18,6 +18,9 @@ export function loadConfig() {
 export function saveConfig(config) {
   mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n', { mode: 0o600 });
+  // The modes above apply only on creation: tighten a folder or file that already existed.
+  chmodSync(CONFIG_DIR, 0o700);
+  chmodSync(CONFIG_PATH, 0o600);
 }
 
 export function clearConfig() {

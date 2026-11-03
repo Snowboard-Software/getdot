@@ -1,7 +1,7 @@
 /**
  * Local file-based response cache for getdot CLI.
  *
- * Cache location: ~/.cache/getdot/
+ * Cache location: ~/.cache/dot/
  * Each entry is a JSON file keyed by SHA-256 hash of the request.
  * Entries never expire — use --no-cache or --clear-cache for fresh data.
  */

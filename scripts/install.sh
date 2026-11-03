@@ -79,18 +79,22 @@ fi
 echo "Installed getdot to $INSTALL_DIR/getdot"
 
 # Install Claude Code / Cursor skill for AI assistant integration
-SKILL_URL="https://raw.githubusercontent.com/$REPO/${LATEST}/SKILL.md"
+# The skill lives in the plugin; releases before the plugin kept it at the repo root.
+SKILL_BASE="https://raw.githubusercontent.com/$REPO/${LATEST}"
 SKILL_DIR="$HOME/.claude/skills/getdot"
 if mkdir -p "$SKILL_DIR" 2>/dev/null; then
-  if curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_URL" 2>/dev/null; then
+  if curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_BASE/plugins/dot/skills/dot/SKILL.md" 2>/dev/null ||
+    curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_BASE/SKILL.md" 2>/dev/null; then
     echo "Claude Code skill installed at $SKILL_DIR/SKILL.md"
   fi
 fi
 
 # Auto-configure credentials if TOKEN is provided (one-line setup from app.getdot.ai/cli-setup)
 if [ -n "$TOKEN" ]; then
-  CONFIG_DIR="$HOME/.config/getdot"
+  # Where the CLI reads it (src/config.mjs).
+  CONFIG_DIR="$HOME/.config/dot"
   mkdir -p "$CONFIG_DIR"
+  chmod 700 "$CONFIG_DIR"
   SERVER_URL="${SERVER:-https://app.getdot.ai}"
   printf '{"token":"%s","server":"%s","created_at":"%s"}\n' "$TOKEN" "$SERVER_URL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CONFIG_DIR/config.json"
   chmod 600 "$CONFIG_DIR/config.json"

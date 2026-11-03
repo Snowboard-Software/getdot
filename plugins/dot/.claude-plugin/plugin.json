@@ -1,0 +1,20 @@
+{
+  "name": "dot",
+  "displayName": "Dot",
+  "version": "1.0.0",
+  "description": "Ask Dot, the AI data analyst, about your company's data. Dot finds the tables, runs SQL on your warehouse with your Dot permissions, and answers with tables, charts and files.",
+  "author": {
+    "name": "Snowboard Software",
+    "email": "hi@getdot.ai",
+    "url": "https://www.getdot.ai"
+  },
+  "homepage": "https://www.getdot.ai",
+  "repository": "https://github.com/Snowboard-Software/getdot",
+  "license": "MIT",
+  "keywords": ["data", "analytics", "sql", "business-intelligence", "data-warehouse", "mcp"],
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://docs.getdot.ai/developers/mcp",
+  "supportUrl": "https://docs.getdot.ai/security-and-support/support",
+  "privacyPolicyUrl": "https://www.getdot.ai/legal/privacy-policy",
+  "termsOfServiceUrl": "https://www.getdot.ai/legal/terms-of-service"
+}

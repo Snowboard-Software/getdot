@@ -79,10 +79,12 @@ fi
 echo "Installed getdot to $INSTALL_DIR/getdot"
 
 # Install Claude Code / Cursor skill for AI assistant integration
-SKILL_URL="https://raw.githubusercontent.com/$REPO/${LATEST}/SKILL.md"
+# The skill lives in the plugin; releases before the plugin kept it at the repo root.
+SKILL_BASE="https://raw.githubusercontent.com/$REPO/${LATEST}"
 SKILL_DIR="$HOME/.claude/skills/getdot"
 if mkdir -p "$SKILL_DIR" 2>/dev/null; then
-  if curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_URL" 2>/dev/null; then
+  if curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_BASE/plugins/dot/skills/dot/SKILL.md" 2>/dev/null ||
+    curl -fsSL -o "$SKILL_DIR/SKILL.md" "$SKILL_BASE/SKILL.md" 2>/dev/null; then
     echo "Claude Code skill installed at $SKILL_DIR/SKILL.md"
   fi
 fi

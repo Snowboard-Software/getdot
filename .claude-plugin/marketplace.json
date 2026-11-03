@@ -1,0 +1,15 @@
+{
+  "name": "getdot",
+  "description": "Dot, the AI data analyst, for Claude Code and Codex.",
+  "owner": {
+    "name": "Snowboard Software",
+    "url": "https://www.getdot.ai"
+  },
+  "plugins": [
+    {
+      "name": "dot",
+      "source": "./plugins/dot",
+      "description": "Ask Dot about your company's data. Connects Dot's MCP server and adds the Dot skill."
+    }
+  ]
+}

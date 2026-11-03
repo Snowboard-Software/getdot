@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dot": {
+      "type": "http",
+      "url": "https://app.getdot.ai/ai/mcp"
+    }
+  }
+}

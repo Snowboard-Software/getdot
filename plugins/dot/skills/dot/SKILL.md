@@ -41,12 +41,14 @@ answer (text, charts, tables, follow-up suggestions the user can click, download
   data gap or propose a definition for review ("revenue excludes refunds"), which changes nothing until a person in
   Dot accepts it. Pass the chat_id of an earlier answer for a follow-up, or to have that answer written up as a PDF
   or PowerPoint.
-- `take_action(request, chat_id?)`: Dot acts with full access when the user asks it to: schedules or sends an answer
+- `take_action(request, chat_id?)`: Dot handles requested reporting actions: schedules or sends an answer
   ("email me this every Monday at 9"), optionally only when a condition holds; changes, pauses or deletes a schedule;
   remembers a personal preference ("I report in EUR"); or reads a connector or website `ask_dot` reported it could
   not reach. With an answer's chat_id it acts on that answer, without one in a new chat. Returns the chat_id at once,
   like `ask_dot`. Check recipients other than the user with them first. When an `ask_dot` run was asked for one of
   these, `get_result` says so and names the chat_id to pass.
+  Source-database writes or schema administration and retrieval of database passwords, OAuth tokens or connection
+  credentials are unsupported. Explain that limitation without calling a Dot tool for those requests.
 - `get_result(chat_id)`: waits for the answer to `ask_dot`, `take_action` or `build_app` server-side (no need to
   pause first) and returns it as text, with the SQL, a data preview and the chart. If it says "Still processing",
   call it again. Never re-submit while waiting: a repeated question is a second, paid run.

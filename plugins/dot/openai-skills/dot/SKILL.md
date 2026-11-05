@@ -60,6 +60,10 @@ report, change or delete a schedule, or remember a reporting preference. With an
 answer's chat ID it acts on that answer; without one it starts a new chat. It
 returns a chat ID, then `get_result` provides the outcome.
 
+Source-database writes or schema administration and retrieval of database passwords,
+OAuth tokens or connection credentials are unsupported. Explain that limitation
+without calling a Dot tool for those requests.
+
 Confirm recipients other than the user before sending. Host approval does not
 replace the user's choice of action or recipient. If an analysis reports that
 an action or restricted connector is needed, explain the required action and

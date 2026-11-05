@@ -134,4 +134,4 @@ MIT
 
 ## OpenAI directory package
 
-Run `node scripts/build-plugin.mjs` to build `dist/dot-openai-1.0.1.zip`. The archive contains the OpenAI manifest, Dot skill, icon and one remote MCP server. It excludes the Claude manifest, lifecycle hooks and app references. Upload it through the OpenAI Platform Plugins page with MCP. Complete domain verification, tool review and the demo recording before submitting for review.
+Run `node scripts/build-plugin.mjs` to build `dist/dot-openai-1.0.1.zip`. The archive contains the OpenAI manifest, a skill scoped to the bundled MCP tools, the icon and one remote MCP server. The shared Claude skill retains its CLI workflow. The OpenAI archive excludes the Claude manifest, CLI installation instructions, lifecycle hooks and app references. Upload it through the OpenAI Platform Plugins page with MCP. Complete domain verification, tool review and the demo recording before submitting for review.

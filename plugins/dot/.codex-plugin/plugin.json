@@ -11,7 +11,7 @@
   "repository": "https://github.com/Snowboard-Software/getdot",
   "license": "MIT",
   "keywords": ["data", "analytics", "sql", "business-intelligence", "data-warehouse"],
-  "skills": "./skills/",
+  "skills": "./openai-skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Dot",

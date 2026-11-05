@@ -17,7 +17,7 @@ function walk(directory) {
   }
 }
 walk('.codex-plugin');
-walk('skills');
+walk('openai-skills');
 walk('assets');
 files.push('.mcp.json');
 if (manifest.hooks || manifest.apps || manifest.extensions?.['com.openai']?.hooks || manifest.extensions?.['com.openai']?.apps) {

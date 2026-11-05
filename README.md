@@ -90,7 +90,7 @@ npx skills add https://github.com/Snowboard-Software/getdot
 
 This adds the Dot skill to Cursor, Gemini CLI and other agents. The CLI installer above adds it too.
 
-Connect Cursor, Windsurf or any MCP client to `https://app.getdot.ai/ai/mcp`. ChatGPT has its own URL: `https://app.getdot.ai/chatgpt/mcp`.
+Connect Cursor, Windsurf or any MCP client to `https://app.getdot.ai/ai/mcp`. ChatGPT uses the same full server: `https://app.getdot.ai/ai/mcp`.
 
 ### EU workspaces
 
@@ -101,7 +101,7 @@ claude mcp add --transport http --scope user dot https://eu.getdot.ai/ai/mcp
 codex mcp add dot --url https://eu.getdot.ai/ai/mcp
 ```
 
-In Claude, use **Add to Claude** on your [EU profile](https://eu.getdot.ai/profile#claude), or paste `https://eu.getdot.ai/ai/mcp`. ChatGPT: `https://eu.getdot.ai/chatgpt/mcp`. Add the skill with `npx skills add` above.
+In Claude, use **Add to Claude** on your [EU profile](https://eu.getdot.ai/profile#claude), or paste `https://eu.getdot.ai/ai/mcp`. ChatGPT uses the same EU URL: `https://eu.getdot.ai/ai/mcp`. Add the skill with `npx skills add` above.
 
 ### Clients without OAuth
 
@@ -131,3 +131,7 @@ Maintainers: bump `version` in [plugins/dot/.claude-plugin/plugin.json](plugins/
 ## License
 
 MIT
+
+## OpenAI directory package
+
+Run `node scripts/build-plugin.mjs` to build `dist/dot-openai-1.0.1.zip`. The archive contains the OpenAI manifest, Dot skill, icon and one remote MCP server. It excludes the Claude manifest, lifecycle hooks and app references. Upload it through the OpenAI Platform Plugins page with MCP. Complete domain verification, tool review and the demo recording before submitting for review.

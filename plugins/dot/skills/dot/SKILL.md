@@ -9,8 +9,8 @@ description: >
   data, metrics, KPIs, reports, SQL, dashboards, or say "ask dot" or
   "check the numbers".
 compatibility: >
-  Works in two modes: through the Dot MCP connector (any Claude surface),
-  or through the dot CLI (terminals with network access, e.g. Claude Code).
+  Works in two modes: through the Dot MCP connector (ChatGPT, Codex or Claude),
+  or through the dot CLI (terminals with network access, e.g. Codex or Claude Code).
 metadata:
   author: Snowboard-Software
 ---
@@ -22,7 +22,7 @@ Dot connects to your company's databases. You ask a question in plain English; D
 ## Pick your transport
 
 1. **Shell with network access** (Claude Code, a terminal): use the `dot` CLI (*Using the dot CLI*). It does everything MCP does and more: files on disk, pipes, schedules, the model, admin.
-2. **Dot MCP tools available** (`ask_dot`, `get_catalog`) and no shell: *Using Dot over MCP*. This is the path on claude.ai, Claude Desktop and Cowork, where sandboxes usually cannot reach arbitrary servers.
+2. **Dot MCP tools available** (`ask_dot`, `get_catalog`) and no shell: *Using Dot over MCP*. This is the path on ChatGPT, claude.ai, Claude Desktop and Cowork, where sandboxes usually cannot reach arbitrary servers.
 3. **Neither works?** Tell the user how to wire Dot up from their Dot profile page ("Use Dot elsewhere"): **Add to Claude** opens Claude with the connector filled in, Codex takes `codex mcp add dot --url https://app.getdot.ai/ai/mcp`, and a terminal takes `curl https://app.getdot.ai/install | sh`. A failed install with `Could not resolve host` means no network egress: use the connector.
 
 Pick the transport silently: the user only needs Dot's answer.
@@ -31,7 +31,7 @@ Pick the transport silently: the user only needs Dot's answer.
 
 Pick the transport silently: the user only needs Dot's answer, not which path you took.
 
-Hosts that render MCP Apps (claude.ai, Claude Desktop) show Dot's work in a live widget: Dot's progress, then its
+Hosts that render MCP Apps (ChatGPT and supported Claude surfaces) show Dot's work in a live widget: Dot's progress, then its
 answer (text, charts, tables, follow-up suggestions the user can click, downloads). The user already sees it there.
 
 **Tools:**

@@ -82,6 +82,10 @@ codex plugin add dot@getdot
 codex mcp login dot
 ```
 
+### ChatGPT
+
+The ChatGPT and Codex directory listing uses the name **GetDot**. ChatGPT connects to the full server at `https://app.getdot.ai/ai/mcp`.
+
 ### Other agents
 
 ```bash
@@ -90,7 +94,7 @@ npx skills add https://github.com/Snowboard-Software/getdot
 
 This adds the Dot skill to Cursor, Gemini CLI and other agents. The CLI installer above adds it too.
 
-Connect Cursor, Windsurf or any MCP client to `https://app.getdot.ai/ai/mcp`. ChatGPT uses the same full server: `https://app.getdot.ai/ai/mcp`.
+Connect Cursor, Windsurf or any MCP client to `https://app.getdot.ai/ai/mcp`.
 
 ### EU workspaces
 

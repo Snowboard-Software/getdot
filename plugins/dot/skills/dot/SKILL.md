@@ -9,8 +9,8 @@ description: >
   data, metrics, KPIs, reports, SQL, dashboards, or say "ask dot" or
   "check the numbers".
 compatibility: >
-  Works in two modes: through the Dot MCP connector (any Claude surface),
-  or through the dot CLI (terminals with network access, e.g. Claude Code).
+  Works in two modes: through the Dot MCP connector (ChatGPT, Codex or Claude),
+  or through the dot CLI (terminals with network access, e.g. Codex or Claude Code).
 metadata:
   author: Snowboard-Software
 ---
@@ -22,7 +22,7 @@ Dot connects to your company's databases. You ask a question in plain English; D
 ## Pick your transport
 
 1. **Shell with network access** (Claude Code, a terminal): use the `dot` CLI (*Using the dot CLI*). It does everything MCP does and more: files on disk, pipes, schedules, the model, admin.
-2. **Dot MCP tools available** (`ask_dot`, `get_catalog`) and no shell: *Using Dot over MCP*. This is the path on claude.ai, Claude Desktop and Cowork, where sandboxes usually cannot reach arbitrary servers.
+2. **Dot MCP tools available** (`ask_dot`, `get_catalog`) and no shell: *Using Dot over MCP*. This is the path on ChatGPT, claude.ai, Claude Desktop and Cowork, where sandboxes usually cannot reach arbitrary servers.
 3. **Neither works?** Tell the user how to wire Dot up from their Dot profile page ("Use Dot elsewhere"): **Add to Claude** opens Claude with the connector filled in, Codex takes `codex mcp add dot --url https://app.getdot.ai/ai/mcp`, and a terminal takes `curl https://app.getdot.ai/install | sh`. A failed install with `Could not resolve host` means no network egress: use the connector.
 
 Pick the transport silently: the user only needs Dot's answer.
@@ -31,7 +31,7 @@ Pick the transport silently: the user only needs Dot's answer.
 
 Pick the transport silently: the user only needs Dot's answer, not which path you took.
 
-Hosts that render MCP Apps (claude.ai, Claude Desktop) show Dot's work in a live widget: Dot's progress, then its
+Hosts that render MCP Apps (ChatGPT and supported Claude surfaces) show Dot's work in a live widget: Dot's progress, then its
 answer (text, charts, tables, follow-up suggestions the user can click, downloads). The user already sees it there.
 
 **Tools:**
@@ -41,12 +41,14 @@ answer (text, charts, tables, follow-up suggestions the user can click, download
   data gap or propose a definition for review ("revenue excludes refunds"), which changes nothing until a person in
   Dot accepts it. Pass the chat_id of an earlier answer for a follow-up, or to have that answer written up as a PDF
   or PowerPoint.
-- `take_action(request, chat_id?)`: Dot acts with full access when the user asks it to: schedules or sends an answer
+- `take_action(request, chat_id?)`: Dot handles requested reporting actions: schedules or sends an answer
   ("email me this every Monday at 9"), optionally only when a condition holds; changes, pauses or deletes a schedule;
   remembers a personal preference ("I report in EUR"); or reads a connector or website `ask_dot` reported it could
   not reach. With an answer's chat_id it acts on that answer, without one in a new chat. Returns the chat_id at once,
   like `ask_dot`. Check recipients other than the user with them first. When an `ask_dot` run was asked for one of
   these, `get_result` says so and names the chat_id to pass.
+  Source-database writes or schema administration and retrieval of database passwords, OAuth tokens or connection
+  credentials are unsupported. Explain that limitation without calling a Dot tool for those requests.
 - `get_result(chat_id)`: waits for the answer to `ask_dot`, `take_action` or `build_app` server-side (no need to
   pause first) and returns it as text, with the SQL, a data preview and the chart. If it says "Still processing",
   call it again. Never re-submit while waiting: a repeated question is a second, paid run.
